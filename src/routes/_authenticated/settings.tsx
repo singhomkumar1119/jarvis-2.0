@@ -1,0 +1,310 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Activity as ActivityIcon, ChevronRight, Coins, LogOut, ShieldCheck, Trash2 } from "lucide-react";
+import { getTokenBalance } from "@/lib/tokens.functions";
+import { logout } from "@/lib/auth-client";
+import { Page, PageHeader, Panel } from "@/components/jarvis/Shell";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { useJarvis, type PermissionKey, type Settings as S } from "@/lib/jarvis-store";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+
+export const Route = createFileRoute("/_authenticated/settings")({
+  head: () => ({
+    meta: [
+      { title: "Settings — Jarvis" },
+      {
+        name: "description",
+        content: "Tune the Jarvis personality, voice, theme, animation intensity, privacy and permissions.",
+      },
+      { property: "og:title", content: "Settings — Jarvis" },
+      { property: "og:description", content: "Personality, voice, theme, motion and privacy controls." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: SettingsPage,
+});
+
+function Row({
+  label,
+  hint,
+  children,
+  wide = false,
+}: {
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+  wide?: boolean;
+}) {
+  return (
+    <div className={cn("grid items-center gap-3 border-b border-border py-3.5 last:border-0 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-6", wide ? "grid-cols-1" : "grid-cols-[minmax(0,1fr)_auto]")}>
+      <div className="min-w-0">
+        <p className="text-sm text-foreground">{label}</p>
+        {hint && <p className="mt-0.5 break-words text-xs text-muted-foreground [overflow-wrap:anywhere]">{hint}</p>}
+      </div>
+      <div className="min-w-0 sm:justify-self-end">{children}</div>
+    </div>
+  );
+}
+
+function Segmented<T extends string>({
+  value,
+  options,
+  onChange,
+}: {
+  value: T;
+  options: readonly T[];
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="glass-soft flex flex-wrap gap-0.5 rounded-2xl p-0.5 sm:flex-nowrap sm:rounded-full">
+      {options.map((o) => (
+        <button
+          key={o}
+          onClick={() => onChange(o)}
+          className={cn(
+            "min-w-0 flex-1 rounded-full px-2 py-2 text-[11px] capitalize transition-all duration-300 sm:px-3 sm:py-1.5",
+            value === o
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {o}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const PERMS: { key: PermissionKey; label: string }[] = [
+  { key: "location", label: "Location access" },
+  { key: "microphone", label: "Microphone access" },
+  { key: "camera", label: "Camera access" },
+  { key: "files", label: "File & photo access" },
+  { key: "weather", label: "Weather access" },
+];
+
+function TokenPanel() {
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ["jarvis-tokens"],
+    queryFn: () => getTokenBalance(),
+  });
+  const balance = data?.balance ?? 0;
+  const starting = data?.starting ?? 500;
+  const pct = Math.max(0, Math.min(100, (balance / starting) * 100));
+  return (
+    <Panel>
+      <h2 className="mb-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">Jarvis tokens</h2>
+      <Row
+        label={isLoading ? "Loading…" : `${balance} of ${starting} tokens left`}
+        hint={balance <= 0 && !isLoading ? "Out of tokens — chat and search are paused" : "Each chat or search uses 1 token"}
+      >
+        <button
+          onClick={() => refetch()}
+          className="flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <Coins className="h-3.5 w-3.5 text-cyan" /> Refresh
+        </button>
+      </Row>
+      <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${pct}%` }} />
+      </div>
+    </Panel>
+  );
+}
+
+function SettingsPage() {
+  const { settings, updateSettings, permissions, requestPermission, revokePermission, clearHistory } =
+    useJarvis();
+  const { user } = Route.useRouteContext() as { user?: { email?: string; user_metadata?: { full_name?: string; avatar_url?: string } } };
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const set = <K extends keyof S>(k: K, v: S[K]) => updateSettings({ [k]: v } as Partial<S>);
+
+  async function handleSignOut() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await logout();
+  }
+
+  return (
+    <Page padBottom={false}>
+      <PageHeader title="Settings" subtitle="Shape how Jarvis looks, sounds and behaves" />
+
+      <div className="space-y-5">
+        <Panel>
+          <h2 className="mb-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">Account</h2>
+          <Row
+            label={user?.user_metadata?.full_name || "Signed in"}
+            hint={user?.email || "Google account"}
+          >
+            {user?.user_metadata?.avatar_url ? (
+              <img
+                src={user.user_metadata.avatar_url}
+                alt=""
+                className="h-8 w-8 rounded-full border border-border"
+              />
+            ) : (
+              <ShieldCheck className="h-5 w-5 text-cyan" />
+            )}
+          </Row>
+          <Row label="Sign out" hint="Ends your session on this device">
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-2 rounded-full border border-destructive/40 px-3 py-1.5 text-[11px] text-destructive transition-colors hover:bg-destructive/10"
+            >
+              <LogOut className="h-3.5 w-3.5" /> Sign out
+            </button>
+          </Row>
+        </Panel>
+
+        <TokenPanel />
+
+        <Link
+          to="/status"
+          className="glass glass-sheen flex items-center gap-3 rounded-3xl px-5 py-4 transition-colors hover:bg-accent"
+        >
+          <ActivityIcon className="h-4.5 w-4.5 text-cyan" />
+          <span className="flex-1 text-sm text-foreground">Jarvis Status</span>
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        </Link>
+
+        <Panel>
+          <h2 className="mb-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">Assistant</h2>
+          <Row label="Jarvis personality" wide>
+            <Segmented
+              value={settings.personality}
+              options={["concise", "balanced", "playful", "technical"] as const}
+              onChange={(v) => set("personality", v)}
+            />
+          </Row>
+          <Row label="Speak replies aloud" hint="Jarvis reads answers using your device voice">
+            <Switch aria-label="Speak replies aloud" checked={settings.speakReplies} onCheckedChange={(v) => set("speakReplies", v)} />
+          </Row>
+          <Row label="Voice" wide>
+            <Segmented
+              value={settings.voice}
+              options={["atlas", "nova", "orion", "lumen"] as const}
+              onChange={(v) => set("voice", v)}
+            />
+          </Row>
+          <Row label="Voice speed" hint={`${settings.voiceSpeed.toFixed(2)}×`} wide>
+            <Slider
+              aria-label="Voice speed"
+              className="w-full py-2 sm:w-44"
+              min={0.5}
+              max={2}
+              step={0.05}
+              value={[settings.voiceSpeed]}
+              onValueChange={([v]) => set("voiceSpeed", v ?? 1)}
+            />
+          </Row>
+          <Row label="Voice tone" hint="Warmer ↔ brighter" wide>
+            <Slider
+              aria-label="Voice tone"
+              className="w-full py-2 sm:w-44"
+              min={0}
+              max={1}
+              step={0.05}
+              value={[settings.voiceTone]}
+              onValueChange={([v]) => set("voiceTone", v ?? 0.5)}
+            />
+          </Row>
+        </Panel>
+
+        <Panel>
+          <h2 className="mb-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">Appearance</h2>
+          <Row label="Theme" hint="Dark cinematic is the default" wide>
+            <Segmented
+              value={settings.theme}
+              options={["dark", "light", "auto"] as const}
+              onChange={(v) => set("theme", v)}
+            />
+          </Row>
+          <Row label="Blob appearance" wide>
+            <Segmented
+              value={settings.blobStyle}
+              options={["aurora", "plasma", "glacier", "ember"] as const}
+              onChange={(v) => set("blobStyle", v)}
+            />
+          </Row>
+          <Row label="Animation intensity" hint={`${Math.round(settings.animationIntensity * 100)}%`} wide>
+            <Slider
+              aria-label="Animation intensity"
+              className="w-full py-2 sm:w-44"
+              min={0}
+              max={1}
+              step={0.05}
+              value={[settings.animationIntensity]}
+              onValueChange={([v]) => set("animationIntensity", v ?? 0.8)}
+            />
+          </Row>
+          <Row label="Reduce motion" hint="Disables blob movement, morphing and transitions">
+            <Switch
+              aria-label="Reduce motion"
+              checked={settings.reduceMotion}
+              onCheckedChange={(v) => set("reduceMotion", v)}
+            />
+          </Row>
+          <Row label="Notifications">
+            <Switch aria-label="Notifications" checked={settings.notifications} onCheckedChange={(v) => set("notifications", v)} />
+          </Row>
+        </Panel>
+
+        <Panel>
+          <h2 className="mb-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            Privacy & security
+          </h2>
+          <Row label="Secure sign-in" hint="Your account is protected by Google sign-in">
+            <ShieldCheck className="h-4.5 w-4.5 text-cyan" />
+          </Row>
+          {PERMS.map((p) => (
+            <Row
+              key={p.key}
+              label={p.label}
+              hint={
+                permissions[p.key] === "granted"
+                  ? "Granted"
+                  : permissions[p.key] === "denied"
+                    ? "Denied"
+                    : "Not granted — Jarvis has no access"
+              }
+            >
+              <Switch
+                aria-label={`Allow ${p.label}`}
+                checked={permissions[p.key] === "granted"}
+                onCheckedChange={(v) => (v ? requestPermission(p.key) : revokePermission(p.key))}
+              />
+            </Row>
+          ))}
+          <Row label="Save chat history" hint="Stored locally on this device only">
+            <Switch aria-label="Save chat history" checked={settings.saveHistory} onCheckedChange={(v) => set("saveHistory", v)} />
+          </Row>
+          <Row label="Clear conversation history">
+            <button
+              onClick={() => {
+                clearHistory();
+                toast("Conversation history cleared");
+              }}
+              className="flex items-center gap-2 rounded-full border border-destructive/40 px-3 py-1.5 text-[11px] text-destructive transition-colors hover:bg-destructive/10"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Clear
+            </button>
+          </Row>
+        </Panel>
+
+        <Panel>
+          <h2 className="mb-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">About Jarvis</h2>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Jarvis v1.0 — an original glass-inspired interface for a personal AI workspace. System
+            telemetry is simulated with placeholder data until you connect real APIs and grant
+            permissions.
+          </p>
+        </Panel>
+      </div>
+    </Page>
+  );
+}
