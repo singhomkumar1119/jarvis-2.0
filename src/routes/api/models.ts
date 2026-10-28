@@ -7,10 +7,11 @@ export type ModelOption = {
 };
 
 const GEMINI_MODELS: ModelOption[] = [
-  { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash (Fastest & Recommended)", provider: "gemini" },
-  { id: "gemini-2.0-flash", label: "Gemini 2.0 Flash", provider: "gemini" },
-  { id: "gemini-1.5-pro", label: "Gemini 1.5 Pro (Deep Reasoning)", provider: "gemini" },
-  { id: "gemini-1.5-flash", label: "Gemini 1.5 Flash", provider: "gemini" },
+  { id: "gemini-3.5-flash-lite", label: "Gemini 3.5 Flash Lite (Fastest & Stable)", provider: "gemini" },
+  { id: "gemini-3.5-flash", label: "Gemini 3.5 Flash", provider: "gemini" },
+  { id: "gemini-3.7-flash", label: "Gemini 3.7 Flash", provider: "gemini" },
+  { id: "gemini-3.1-flash-lite", label: "Gemini 3.1 Flash Lite", provider: "gemini" },
+  { id: "gemini-3.1-pro-preview", label: "Gemini 3.1 Pro (Deep Reasoning)", provider: "gemini" },
 ];
 
 const OPENAI_MODELS: ModelOption[] = [
@@ -47,7 +48,7 @@ export const Route = createFileRoute("/api/models")({
         const nvidiaKey = process.env["NVIDIA_API_KEY"];
         const customUrl = process.env["AI_BASE_URL"];
 
-        // Add Gemini models if key is configured (or by default)
+        // Add Gemini models
         for (const m of GEMINI_MODELS) add(m);
 
         if (openaiKey) {

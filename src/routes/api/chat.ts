@@ -67,7 +67,7 @@ function resolveModel(requestedModel?: string) {
   // 1. If explicit Gemini model or Gemini key is set and no other explicit prefix
   if (modelId?.startsWith("gemini") || (geminiKey && (!modelId || !modelId.includes("/")))) {
     if (!geminiKey) throw new Error("GEMINI_API_KEY is not configured in .env");
-    const activeId = modelId || "gemini-2.5-flash";
+    const activeId = modelId || "gemini-3.5-flash-lite";
     const provider = createGeminiProvider(geminiKey);
     return { model: provider(activeId), modelId: activeId };
   }
