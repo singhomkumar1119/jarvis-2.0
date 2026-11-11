@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://jarvis-ai-iron.lovable.app/sitemap.xml
+Sitemap: /sitemap.xml

@@ -55,53 +55,122 @@ function systemPrompt(channel: "chat" | "terminal", personality: string) {
   return `${base}\nKeep replies conversational and suitable to be read aloud: short paragraphs, no markdown tables, no long bullet lists. Use fenced code blocks only when the user asks for code.`;
 }
 
-function resolveModel(requestedModel?: string) {
+type ResolvedModel = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  model: any;
+  modelId: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  fallbacks?: Array<{ id: string; instance: any }>;
+};
+
+function resolveModel(requestedModel?: string): ResolvedModel {
   const geminiKey = process.env["GEMINI_API_KEY"];
   const openaiKey = process.env["OPENAI_API_KEY"];
   const ollamaUrl = process.env["OLLAMA_BASE_URL"];
   const nvidiaKey = process.env["NVIDIA_API_KEY"];
   const customUrl = process.env["AI_BASE_URL"];
 
-  const modelId = requestedModel?.trim();
+  const rawId = requestedModel?.trim();
 
-  // 1. If explicit Gemini model or Gemini key is set and no other explicit prefix
-  if (modelId?.startsWith("gemini") || (geminiKey && (!modelId || !modelId.includes("/")))) {
-    if (!geminiKey) throw new Error("GEMINI_API_KEY is not configured in .env");
-    const activeId = modelId || "gemini-3.5-flash-lite";
+  // Determine provider intent
+  const isGemini =
+    rawId?.startsWith("gemini") ||
+    rawId?.startsWith("gemma") ||
+    (!rawId && geminiKey);
+
+  const isOpenAI =
+    rawId?.startsWith("gpt-") ||
+    rawId?.startsWith("o1") ||
+    rawId?.startsWith("o3") ||
+    (!rawId && !geminiKey && openaiKey);
+
+  const isOllama =
+    rawId === "deepseek-r1" ||
+    rawId === "llama3.2" ||
+    rawId === "mistral" ||
+    rawId?.startsWith("ollama");
+
+  const isNvidia = rawId?.startsWith("nvidia/") || (!rawId && !geminiKey && !openaiKey && nvidiaKey);
+
+  const isCustom = rawId === "custom" || (!rawId && customUrl);
+
+  // 1. Google Gemini
+  if (isGemini) {
+    if (!geminiKey) {
+      throw new Error("Google Gemini API key is missing. Please add GEMINI_API_KEY to your .env file.");
+    }
     const provider = createGeminiProvider(geminiKey);
-    return { model: provider(activeId), modelId: activeId };
+    const activeId = rawId || "gemini-3.5-flash-lite";
+
+    // Resilient fallback models that are verified to be online
+    const fallbackIds = [
+      activeId,
+      "gemini-3.5-flash-lite",
+      "gemini-3.5-flash",
+      "gemini-3.1-flash-lite",
+      "gemma-4-26b-a4b-it",
+    ].filter((id, idx, arr) => arr.indexOf(id) === idx);
+
+    return {
+      model: provider(activeId),
+      modelId: activeId,
+      fallbacks: fallbackIds.slice(1).map((id) => ({
+        id,
+        instance: provider(id),
+      })),
+    };
   }
 
   // 2. OpenAI models
-  if (modelId?.startsWith("gpt-") || openaiKey) {
-    if (!openaiKey) throw new Error("OPENAI_API_KEY is not configured in .env");
-    const activeId = modelId || "gpt-4o";
+  if (isOpenAI) {
+    if (!openaiKey) {
+      throw new Error(
+        "OpenAI API key is missing. Please configure OPENAI_API_KEY in your .env file to use OpenAI models."
+      );
+    }
+    const activeId = rawId || "gpt-4o-mini";
     const provider = createOpenAIProvider(openaiKey);
     return { model: provider(activeId), modelId: activeId };
   }
 
   // 3. Ollama local
-  if (ollamaUrl || modelId?.startsWith("ollama")) {
-    const activeId = modelId?.replace("ollama/", "") || "llama3.2";
+  if (isOllama) {
+    const activeId = rawId?.replace("ollama/", "") || "llama3.2";
     const provider = createOllamaProvider(ollamaUrl);
     return { model: provider(activeId), modelId: activeId };
   }
 
   // 4. Custom endpoint
-  if (customUrl) {
-    const activeId = modelId || process.env["AI_MODEL"] || "custom-model";
+  if (isCustom || customUrl) {
+    if (!customUrl) {
+      throw new Error("Custom AI endpoint URL is missing. Please configure AI_BASE_URL in your .env file.");
+    }
+    const activeId = rawId || process.env["AI_MODEL"] || "custom-model";
     const provider = createCustomProvider(customUrl, process.env["AI_API_KEY"]);
     return { model: provider(activeId), modelId: activeId };
   }
 
   // 5. Nvidia
-  if (nvidiaKey) {
-    const activeId = modelId || "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning";
+  if (isNvidia) {
+    if (!nvidiaKey) {
+      throw new Error(
+        "NVIDIA NIM API key is missing. Please configure NVIDIA_API_KEY in your .env file."
+      );
+    }
+    const activeId = rawId || "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning";
     const provider = createNvidiaProvider(nvidiaKey);
     return { model: provider(activeId), modelId: activeId };
   }
 
-  // Default fallback instructions
+  // Default fallback if nothing matched
+  if (geminiKey) {
+    const provider = createGeminiProvider(geminiKey);
+    return {
+      model: provider("gemini-3.5-flash-lite"),
+      modelId: "gemini-3.5-flash-lite",
+    };
+  }
+
   throw new Error(
     "No AI provider configured. Please add GEMINI_API_KEY to your .env file (free at https://aistudio.google.com/)."
   );
@@ -136,16 +205,17 @@ export const Route = createFileRoute("/api/chat")({
           return new Response("Conversation is too long for a single request.", { status: 413 });
         }
 
-        let selectedModelInstance;
-        let selectedModelId = "gemini-2.5-flash";
+        let resolved: ResolvedModel;
         try {
-          const resolved = resolveModel(body.model);
-          selectedModelInstance = resolved.model;
-          selectedModelId = resolved.modelId;
+          resolved = resolveModel(body.model);
         } catch (err) {
           const msg = err instanceof Error ? err.message : "AI model configuration error.";
-          return new Response(msg, { status: 500 });
+          return new Response(msg, { status: 400 });
         }
+
+        const selectedModelInstance = resolved.model;
+        let selectedModelId = resolved.modelId;
+        const fallbacks = resolved.fallbacks ?? [];
 
         const channel = body.channel === "terminal" ? "terminal" : "chat";
         const personality = body.personality ?? "balanced";
@@ -198,12 +268,6 @@ export const Route = createFileRoute("/api/chat")({
         ];
 
         try {
-          const result = streamText({
-            model: selectedModelInstance,
-            system: systemPrompt(channel, personality),
-            messages: modelMessages,
-          });
-
           const encoder = new TextEncoder();
           let answerText = "";
 
@@ -214,33 +278,68 @@ export const Route = createFileRoute("/api/chat")({
                 controller.enqueue(encoder.encode(chunk));
               };
 
-              try {
-                for await (const chunk of result.textStream) {
-                  enqueue(chunk);
-                }
-              } catch (error) {
-                console.error("Stream generation error:", error);
-                const errMsg = error instanceof Error ? error.message : "Error streaming response";
-                enqueue(`\n\n[Jarvis Error: ${errMsg}]`);
-              } finally {
-                controller.close();
-                // Save to local SQLite database
+              let chunksCount = 0;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const streamCandidate = async (modelInstance: any, modelName: string) => {
                 try {
-                  const { db } = await import("@/db");
-                  const { chatHistory } = await import("@/db/schema");
-                  const question = String(messages[messages.length - 1]?.content ?? "").slice(0, 8000);
-                  await db.insert(chatHistory).values({
-                    id: crypto.randomUUID(),
-                    userId: "owner",
-                    channel: String(channel),
-                    question,
-                    answer: answerText.slice(0, 40000),
-                    model: selectedModelId,
-                    createdAt: Date.now(),
+                  const result = streamText({
+                    model: modelInstance,
+                    system: systemPrompt(channel, personality),
+                    messages: modelMessages,
+                    maxRetries: 1,
                   });
-                } catch (dbErr) {
-                  console.error("Failed to save chat history to local SQLite:", dbErr);
+
+                  for await (const chunk of result.textStream) {
+                    chunksCount++;
+                    enqueue(chunk);
+                  }
+                  if (chunksCount > 0) {
+                    selectedModelId = modelName;
+                    return true;
+                  }
+                } catch (err) {
+                  console.warn(`[Jarvis Model Stream] Attempt on ${modelName} failed:`, err);
                 }
+                return false;
+              };
+
+              // 1. Attempt with user-selected model
+              await streamCandidate(selectedModelInstance, selectedModelId);
+
+              // 2. If primary failed or yielded 0 chunks (e.g. 503 high demand or 429 quota), try fallbacks
+              if (chunksCount === 0 && fallbacks.length > 0) {
+                for (const fb of fallbacks) {
+                  const success = await streamCandidate(fb.instance, fb.id);
+                  if (success) break;
+                }
+              }
+
+              // 3. If still 0 chunks emitted, give friendly Jarvis explanation
+              if (chunksCount === 0) {
+                const politeMsg =
+                  `Jarvis is currently unable to reach ${selectedModelId} due to provider rate limits or capacity spikes. ` +
+                  `Please switch to Gemini 3.5 Flash Lite in the model picker, or retry in a moment.`;
+                enqueue(politeMsg);
+              }
+
+              controller.close();
+
+              // Save to local SQLite database
+              try {
+                const { db } = await import("@/db");
+                const { chatHistory } = await import("@/db/schema");
+                const question = String(messages[messages.length - 1]?.content ?? "").slice(0, 8000);
+                await db.insert(chatHistory).values({
+                  id: crypto.randomUUID(),
+                  userId: "owner",
+                  channel: String(channel),
+                  question,
+                  answer: answerText.slice(0, 40000),
+                  model: selectedModelId,
+                  createdAt: Date.now(),
+                });
+              } catch (dbErr) {
+                console.error("Failed to save chat history to local SQLite:", dbErr);
               }
             },
           });

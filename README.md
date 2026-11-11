@@ -81,15 +81,32 @@ Jarvis supports multiple AI backends configurable via `.env`:
 
 ---
 
-## 🗄️ Database & Data Storage
+## 🗄️ Database & Data Storage (Hybrid: Supabase or SQLite)
 
-All data is stored locally in the `./data/` folder:
-- **`./data/jarvis.db`**: Local SQLite database containing conversation history, tasks, and system events.
+Jarvis features a flexible hybrid database architecture supporting both local offline SQLite and cloud-hosted **Supabase PostgreSQL**:
+
+### Option 1: Local SQLite (Default)
+Stored locally in the `./data/` folder:
+- **`./data/jarvis.db`**: Local SQLite database for conversation history, tasks, and system events.
 - **`./data/uploads/`**: Uploaded attachments and media files.
+Zero external databases required — auto-initialized on first boot.
 
-No external PostgreSQL, Supabase, or cloud database setup is required. The database tables are automatically initialized on first startup.
+### Option 2: Supabase (Cloud PostgreSQL)
+To connect your own Supabase database:
+1. Create a free project at [supabase.com](https://supabase.com).
+2. Go to **SQL Editor** in your Supabase dashboard and run the setup script:
+   [`drizzle/supabase_setup.sql`](file:///c:/Users/Server/.gemini/antigravity-ide/scratch/jarvis-ai-iron-main/drizzle/supabase_setup.sql)
+3. Copy your database connection URI from **Project Settings -> Database -> Connection String -> URI**.
+4. Set it in `.env`:
+   ```env
+   DATABASE_URL="postgresql://postgres.[YOUR-PROJECT-REF]:[YOUR-PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres"
+   ```
+5. *(Optional)* Migrate all your existing local SQLite chats and tasks to Supabase:
+   ```bash
+   npm run db:migrate-supabase
+   ```
 
-To inspect or migrate the database with Drizzle Kit:
+To inspect your database schema with Drizzle Kit:
 
 ```bash
 npx drizzle-kit studio
