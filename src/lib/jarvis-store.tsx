@@ -253,7 +253,10 @@ export function JarvisProvider({ children }: { children: ReactNode }) {
       });
 
       if (!res.ok || !res.body) {
-        const detail = (await res.text().catch(() => "")) || "Jarvis couldn't reach the AI gateway.";
+        let detail = (await res.text().catch(() => "")) || "Jarvis couldn't reach the AI gateway.";
+        if (res.status === 404) {
+          detail = "Jarvis AI server endpoint is not available on static GitHub Pages. GitHub Pages hosts the static interface. To use live AI chat, run locally via npm run dev or host on a Node server like Vercel or Render.";
+        }
         setMessages((m) =>
           m.map((msg) => (msg.id === id ? { ...msg, text: detail, streaming: false, error: true } : msg)),
         );

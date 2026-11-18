@@ -25,7 +25,8 @@ if (isPostgresDb) {
     connectionString: rawDbUrl,
     ssl: { rejectUnauthorized: false },
     max: 10,
-    idleTimeoutMillis: 30000,
+    idleTimeoutMillis: 1000,
+    allowExitOnIdle: true,
   });
   clientInstance = pool;
   dbInstance = drizzlePg(pool, {
