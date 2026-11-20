@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { getAuthStatus, loginWithPin } from "@/lib/auth-client";
 
 function safeNext(value: unknown): string {
-  if (typeof value !== "string" || !/^\/(?![\/\\])[A-Za-z0-9\-._~!$&'()*+,;=:@%/?#]*$/.test(value)) return "";
+  if (typeof value !== "string" || !/^\/(?![\/\\])[A-Za-z0-9\-._~!$&'()*+,;=:@%/?#]*$/.test(value))
+    return "";
   return value;
 }
 
@@ -19,7 +20,10 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Authenticate — Jarvis AI" },
-      { name: "description", content: "Authenticate to your personal self-hosted Jarvis AI assistant." },
+      {
+        name: "description",
+        content: "Authenticate to your personal self-hosted Jarvis AI assistant.",
+      },
     ],
   }),
   component: AuthPage,
@@ -81,9 +85,7 @@ function AuthPage() {
             <Lock className="h-7 w-7 text-cyan" />
           </div>
 
-          <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-            JARVIS // OS
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">JARVIS // OS</h1>
           <p className="mt-2 text-xs uppercase tracking-widest text-cyan/80">
             Security Clearance Protocol
           </p>

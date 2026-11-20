@@ -29,9 +29,7 @@ function highlight(source: string) {
     });
     parts.push(line.slice(last));
     return (
-      <div key={i}>
-        {line.startsWith("$") ? <span className="text-cyan">{parts}</span> : parts}
-      </div>
+      <div key={i}>{line.startsWith("$") ? <span className="text-cyan">{parts}</span> : parts}</div>
     );
   });
 }
@@ -40,8 +38,14 @@ export function TypingIndicator() {
   return (
     <div className="flex items-center gap-3 py-1" aria-label="Jarvis is thinking" role="status">
       <span className="relative flex h-4 w-4 items-center justify-center">
-        <span className="absolute inset-0 rounded-full bg-cyan/40" style={{ animation: "think-pulse 1.6s ease-out infinite" }} />
-        <span className="h-2.5 w-2.5 rounded-full bg-cyan" style={{ animation: "think-breathe 1.6s ease-in-out infinite" }} />
+        <span
+          className="absolute inset-0 rounded-full bg-cyan/40"
+          style={{ animation: "think-pulse 1.6s ease-out infinite" }}
+        />
+        <span
+          className="h-2.5 w-2.5 rounded-full bg-cyan"
+          style={{ animation: "think-breathe 1.6s ease-in-out infinite" }}
+        />
       </span>
       <span className="think-shimmer text-sm font-medium">Thinking…</span>
     </div>
@@ -74,7 +78,12 @@ export function ChatMessage({
 
   return (
     <div className={cn("flex w-full animate-rise", isUser ? "justify-end" : "justify-start")}>
-      <div className={cn("min-w-0 max-w-[min(680px,94%)] space-y-2 sm:max-w-[min(680px,88%)]", isUser && "items-end")}>
+      <div
+        className={cn(
+          "min-w-0 max-w-[min(680px,94%)] space-y-2 sm:max-w-[min(680px,88%)]",
+          isUser && "items-end",
+        )}
+      >
         {!isUser && (
           <span className="ml-1 text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
             Jarvis
@@ -117,7 +126,11 @@ export function ChatMessage({
                 className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
                 aria-label={expanded ? "Collapse code" : "Expand code"}
               >
-                {expanded ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+                {expanded ? (
+                  <Minimize2 className="h-3.5 w-3.5" />
+                ) : (
+                  <Maximize2 className="h-3.5 w-3.5" />
+                )}
               </button>
             </div>
             <pre

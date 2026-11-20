@@ -1,6 +1,17 @@
+import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Activity as ActivityIcon, ChevronRight, Coins, LogOut, ShieldCheck, Trash2 } from "lucide-react";
+import {
+  Activity as ActivityIcon,
+  Check,
+  ChevronRight,
+  Coins,
+  LogOut,
+  Save,
+  ShieldCheck,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 import { getTokenBalance } from "@/lib/tokens.functions";
 import { logout } from "@/lib/auth-client";
 import { Page, PageHeader, Panel } from "@/components/jarvis/Shell";
@@ -16,10 +27,14 @@ export const Route = createFileRoute("/_authenticated/settings")({
       { title: "Settings — Jarvis" },
       {
         name: "description",
-        content: "Tune the Jarvis personality, voice, theme, animation intensity, privacy and permissions.",
+        content:
+          "Tune the Jarvis personality, voice, theme, animation intensity, privacy and permissions.",
       },
       { property: "og:title", content: "Settings — Jarvis" },
-      { property: "og:description", content: "Personality, voice, theme, motion and privacy controls." },
+      {
+        property: "og:description",
+        content: "Personality, voice, theme, motion and privacy controls.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -39,10 +54,19 @@ function Row({
   wide?: boolean;
 }) {
   return (
-    <div className={cn("grid items-center gap-3 border-b border-border py-3.5 last:border-0 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-6", wide ? "grid-cols-1" : "grid-cols-[minmax(0,1fr)_auto]")}>
+    <div
+      className={cn(
+        "grid items-center gap-3 border-b border-border py-3.5 last:border-0 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-6",
+        wide ? "grid-cols-1" : "grid-cols-[minmax(0,1fr)_auto]",
+      )}
+    >
       <div className="min-w-0">
         <p className="text-sm text-foreground">{label}</p>
-        {hint && <p className="mt-0.5 break-words text-xs text-muted-foreground [overflow-wrap:anywhere]">{hint}</p>}
+        {hint && (
+          <p className="mt-0.5 break-words text-xs text-muted-foreground [overflow-wrap:anywhere]">
+            {hint}
+          </p>
+        )}
       </div>
       <div className="min-w-0 sm:justify-self-end">{children}</div>
     </div>
@@ -96,10 +120,16 @@ function TokenPanel() {
   const pct = Math.max(0, Math.min(100, (balance / starting) * 100));
   return (
     <Panel>
-      <h2 className="mb-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">Jarvis tokens</h2>
+      <h2 className="mb-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+        Jarvis tokens
+      </h2>
       <Row
         label={isLoading ? "Loading…" : `${balance} of ${starting} tokens left`}
-        hint={balance <= 0 && !isLoading ? "Out of tokens — chat and search are paused" : "Each chat or search uses 1 token"}
+        hint={
+          balance <= 0 && !isLoading
+            ? "Out of tokens — chat and search are paused"
+            : "Each chat or search uses 1 token"
+        }
       >
         <button
           onClick={() => refetch()}
@@ -109,16 +139,124 @@ function TokenPanel() {
         </button>
       </Row>
       <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
-        <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${pct}%` }} />
+        <div
+          className="h-full rounded-full bg-primary transition-all duration-500"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </Panel>
+  );
+}
+
+function AiKeysPanel() {
+  const [geminiKey, setGeminiKey] = useState(() =>
+    typeof window !== "undefined" ? localStorage.getItem("jarvis_gemini_api_key") || "" : "",
+  );
+  const [openaiKey, setOpenaiKey] = useState(() =>
+    typeof window !== "undefined" ? localStorage.getItem("jarvis_openai_api_key") || "" : "",
+  );
+  const [ollamaUrl, setOllamaUrl] = useState(() =>
+    typeof window !== "undefined" ? localStorage.getItem("jarvis_ollama_base_url") || "" : "",
+  );
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    if (typeof window !== "undefined") {
+      if (geminiKey.trim()) localStorage.setItem("jarvis_gemini_api_key", geminiKey.trim());
+      else localStorage.removeItem("jarvis_gemini_api_key");
+
+      if (openaiKey.trim()) localStorage.setItem("jarvis_openai_api_key", openaiKey.trim());
+      else localStorage.removeItem("jarvis_openai_api_key");
+
+      if (ollamaUrl.trim()) localStorage.setItem("jarvis_ollama_base_url", ollamaUrl.trim());
+      else localStorage.removeItem("jarvis_ollama_base_url");
+
+      setSaved(true);
+      toast.success("AI API configuration saved successfully!");
+      setTimeout(() => setSaved(false), 2000);
+    }
+  };
+
+  return (
+    <Panel>
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-xs uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-1.5">
+          <Sparkles className="h-3.5 w-3.5 text-cyan" /> AI Providers & Direct Keys
+        </h2>
+        <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+          Ready
+        </span>
+      </div>
+
+      <div className="space-y-3 pt-1">
+        <div>
+          <div className="flex justify-between items-center text-xs mb-1">
+            <span className="text-foreground font-medium">Google Gemini API Key</span>
+            <span className="text-[10px] text-emerald-400">Default key connected</span>
+          </div>
+          <input
+            type="password"
+            value={geminiKey}
+            onChange={(e) => setGeminiKey(e.target.value)}
+            placeholder="Bundled key active (or paste custom key)"
+            className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/40 outline-none focus:border-cyan/50"
+          />
+        </div>
+
+        <div>
+          <div className="flex justify-between items-center text-xs mb-1">
+            <span className="text-foreground font-medium">OpenAI API Key (Optional)</span>
+            <span className="text-[10px] text-muted-foreground">For GPT-4o & GPT-4o Mini</span>
+          </div>
+          <input
+            type="password"
+            value={openaiKey}
+            onChange={(e) => setOpenaiKey(e.target.value)}
+            placeholder="sk-proj-..."
+            className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/40 outline-none focus:border-cyan/50"
+          />
+        </div>
+
+        <div>
+          <div className="flex justify-between items-center text-xs mb-1">
+            <span className="text-foreground font-medium">Ollama Base URL (Optional)</span>
+            <span className="text-[10px] text-muted-foreground">For local DeepSeek & Llama</span>
+          </div>
+          <input
+            type="text"
+            value={ollamaUrl}
+            onChange={(e) => setOllamaUrl(e.target.value)}
+            placeholder="http://localhost:11434"
+            className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/40 outline-none focus:border-cyan/50"
+          />
+        </div>
+
+        <div className="flex justify-end pt-1">
+          <button
+            onClick={handleSave}
+            className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:opacity-90 active:scale-95 transition-all"
+          >
+            {saved ? <Check className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />}
+            {saved ? "Saved" : "Save Keys"}
+          </button>
+        </div>
       </div>
     </Panel>
   );
 }
 
 function SettingsPage() {
-  const { settings, updateSettings, permissions, requestPermission, revokePermission, clearHistory } =
-    useJarvis();
-  const { user } = Route.useRouteContext() as { user?: { email?: string; user_metadata?: { full_name?: string; avatar_url?: string } } };
+  const {
+    settings,
+    updateSettings,
+    permissions,
+    requestPermission,
+    revokePermission,
+    clearHistory,
+  } = useJarvis();
+  const { user } = Route.useRouteContext() as {
+    user?: { email?: string; user_metadata?: { full_name?: string; avatar_url?: string } };
+  };
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -163,6 +301,8 @@ function SettingsPage() {
 
         <TokenPanel />
 
+        <AiKeysPanel />
+
         <Link
           to="/status"
           className="glass glass-sheen flex items-center gap-3 rounded-3xl px-5 py-4 transition-colors hover:bg-accent"
@@ -173,7 +313,9 @@ function SettingsPage() {
         </Link>
 
         <Panel>
-          <h2 className="mb-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">Assistant</h2>
+          <h2 className="mb-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            Assistant
+          </h2>
           <Row label="Jarvis personality" wide>
             <Segmented
               value={settings.personality}
@@ -182,7 +324,11 @@ function SettingsPage() {
             />
           </Row>
           <Row label="Speak replies aloud" hint="Jarvis reads answers using your device voice">
-            <Switch aria-label="Speak replies aloud" checked={settings.speakReplies} onCheckedChange={(v) => set("speakReplies", v)} />
+            <Switch
+              aria-label="Speak replies aloud"
+              checked={settings.speakReplies}
+              onCheckedChange={(v) => set("speakReplies", v)}
+            />
           </Row>
           <Row label="Voice" wide>
             <Segmented
@@ -216,7 +362,9 @@ function SettingsPage() {
         </Panel>
 
         <Panel>
-          <h2 className="mb-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">Appearance</h2>
+          <h2 className="mb-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            Appearance
+          </h2>
           <Row label="Theme" hint="Dark cinematic is the default" wide>
             <Segmented
               value={settings.theme}
@@ -231,7 +379,11 @@ function SettingsPage() {
               onChange={(v) => set("blobStyle", v)}
             />
           </Row>
-          <Row label="Animation intensity" hint={`${Math.round(settings.animationIntensity * 100)}%`} wide>
+          <Row
+            label="Animation intensity"
+            hint={`${Math.round(settings.animationIntensity * 100)}%`}
+            wide
+          >
             <Slider
               aria-label="Animation intensity"
               className="w-full py-2 sm:w-44"
@@ -250,7 +402,11 @@ function SettingsPage() {
             />
           </Row>
           <Row label="Notifications">
-            <Switch aria-label="Notifications" checked={settings.notifications} onCheckedChange={(v) => set("notifications", v)} />
+            <Switch
+              aria-label="Notifications"
+              checked={settings.notifications}
+              onCheckedChange={(v) => set("notifications", v)}
+            />
           </Row>
         </Panel>
 
@@ -281,7 +437,11 @@ function SettingsPage() {
             </Row>
           ))}
           <Row label="Save chat history" hint="Stored locally on this device only">
-            <Switch aria-label="Save chat history" checked={settings.saveHistory} onCheckedChange={(v) => set("saveHistory", v)} />
+            <Switch
+              aria-label="Save chat history"
+              checked={settings.saveHistory}
+              onCheckedChange={(v) => set("saveHistory", v)}
+            />
           </Row>
           <Row label="Clear conversation history">
             <button
@@ -297,7 +457,9 @@ function SettingsPage() {
         </Panel>
 
         <Panel>
-          <h2 className="mb-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">About Jarvis</h2>
+          <h2 className="mb-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            About Jarvis
+          </h2>
           <p className="text-sm leading-relaxed text-muted-foreground">
             Jarvis v1.0 — an original glass-inspired interface for a personal AI workspace. System
             telemetry is simulated with placeholder data until you connect real APIs and grant

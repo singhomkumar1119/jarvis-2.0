@@ -52,7 +52,9 @@ export function PageHeader({
 }
 
 export function Panel({ className, children }: { className?: string; children: ReactNode }) {
-  return <section className={cn("glass min-w-0 rounded-3xl p-4 sm:p-5", className)}>{children}</section>;
+  return (
+    <section className={cn("glass min-w-0 rounded-3xl p-4 sm:p-5", className)}>{children}</section>
+  );
 }
 
 export function Page({

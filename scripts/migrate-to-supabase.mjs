@@ -14,7 +14,10 @@ if (fs.existsSync(envPath)) {
     if (match) {
       const key = match[1].trim();
       let val = match[2].trim();
-      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+      if (
+        (val.startsWith('"') && val.endsWith('"')) ||
+        (val.startsWith("'") && val.endsWith("'"))
+      ) {
         val = val.slice(1, -1);
       }
       if (!process.env[key]) process.env[key] = val;
@@ -30,7 +33,9 @@ const targetUrl =
 if (!targetUrl) {
   console.error("\n❌ Error: No Supabase PostgreSQL connection string provided.");
   console.log("\nUsage:");
-  console.log('  npm run db:migrate-supabase "postgresql://postgres.[ref]:[pass]@[host]:6543/postgres"');
+  console.log(
+    '  npm run db:migrate-supabase "postgresql://postgres.[ref]:[pass]@[host]:6543/postgres"',
+  );
   console.log("  OR set SUPABASE_DATABASE_URL in your .env file.\n");
   process.exit(1);
 }
@@ -64,7 +69,7 @@ async function migrate() {
          ON CONFLICT (id) DO UPDATE SET
            answer = EXCLUDED.answer,
            model = EXCLUDED.model`,
-        [row.id, row.user_id, row.channel, row.question, row.answer, row.model, row.created_at]
+        [row.id, row.user_id, row.channel, row.question, row.answer, row.model, row.created_at],
       );
       chatCount++;
     }
@@ -83,7 +88,7 @@ async function migrate() {
            detail = EXCLUDED.detail,
            progress = EXCLUDED.progress,
            state = EXCLUDED.state`,
-        [row.id, row.title, row.detail, row.progress, row.state, row.created_at]
+        [row.id, row.title, row.detail, row.progress, row.state, row.created_at],
       );
       taskCount++;
     }
@@ -109,7 +114,7 @@ async function migrate() {
           row.file_size,
           row.file_path,
           row.created_at,
-        ]
+        ],
       );
       eventCount++;
     }
@@ -124,7 +129,7 @@ async function migrate() {
         `INSERT INTO public.user_settings (key, value)
          VALUES ($1, $2)
          ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
-        [row.key, row.value]
+        [row.key, row.value],
       );
       settingCount++;
     }
@@ -141,4 +146,3 @@ async function migrate() {
 }
 
 migrate();
-

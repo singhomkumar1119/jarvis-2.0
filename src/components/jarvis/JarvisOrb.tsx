@@ -53,7 +53,12 @@ export function JarvisOrb({
       onClick={onPress}
       aria-label="Jarvis orb"
       className="group relative grid shrink-0 place-items-center rounded-full outline-none focus-visible:focus-glow"
-      style={{ width: `min(${size}px, 68vw, 36dvh)`, aspectRatio: "1", transform: `scale(${scale})`, transition: "transform 700ms cubic-bezier(0.16,1,0.3,1)" }}
+      style={{
+        width: `min(${size}px, 68vw, 36dvh)`,
+        aspectRatio: "1",
+        transform: `scale(${scale})`,
+        transition: "transform 700ms cubic-bezier(0.16,1,0.3,1)",
+      }}
     >
       {/* ambient gradient lighting */}
       <span
@@ -72,7 +77,8 @@ export function JarvisOrb({
           className={cn("absolute inset-[-6%] rounded-full", animated && "animate-spin-slow")}
           style={{
             background: `conic-gradient(from 0deg, transparent 0 55%, color-mix(in oklab, ${tintA} 55%, transparent) 72%, transparent 88%)`,
-            maskImage: "radial-gradient(circle, transparent 58%, black 62%, black 78%, transparent 82%)",
+            maskImage:
+              "radial-gradient(circle, transparent 58%, black 62%, black 78%, transparent 82%)",
             WebkitMaskImage:
               "radial-gradient(circle, transparent 58%, black 62%, black 78%, transparent 82%)",
           }}
@@ -94,7 +100,10 @@ export function JarvisOrb({
       {/* the glass body */}
       <span
         aria-hidden
-        className={cn("relative block h-[74%] w-[74%] overflow-hidden", animated && "animate-drift")}
+        className={cn(
+          "relative block h-[74%] w-[74%] overflow-hidden",
+          animated && "animate-drift",
+        )}
         style={{
           borderRadius: "48% 52% 55% 45% / 52% 46% 54% 48%",
           background: `radial-gradient(120% 100% at 30% 22%, color-mix(in oklab, var(--glass-highlight) 70%, transparent) 0%, transparent 45%), radial-gradient(90% 90% at 70% 78%, color-mix(in oklab, ${tintB} 40%, transparent), transparent 70%), linear-gradient(160deg, color-mix(in oklab, ${tintA} 26%, transparent), color-mix(in oklab, var(--charcoal) 70%, transparent))`,
@@ -116,11 +125,13 @@ export function JarvisOrb({
             style={{
               width: 3 + (i % 3),
               height: 3 + (i % 3),
-              left: `${(i * 37) % 88 + 5}%`,
-              top: `${(i * 53) % 84 + 8}%`,
+              left: `${((i * 37) % 88) + 5}%`,
+              top: `${((i * 53) % 84) + 8}%`,
               background: i % 2 ? "var(--cyan)" : "var(--glass-highlight)",
               opacity: 0.15 + ((i % 5) / 10) * intensity,
-              animation: animated ? `breathe ${5 + (i % 5)}s ease-in-out ${i * 0.3}s infinite` : undefined,
+              animation: animated
+                ? `breathe ${5 + (i % 5)}s ease-in-out ${i * 0.3}s infinite`
+                : undefined,
             }}
           />
         ))}

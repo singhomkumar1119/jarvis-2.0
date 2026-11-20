@@ -3,25 +3,30 @@ import { Check, ChevronUp, Cpu, Search, Sparkles } from "lucide-react";
 import { useJarvis } from "@/lib/jarvis-store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ALL_MODELS, DEFAULT_MODEL_ID, PROVIDER_NAMES, type ModelOption } from "@/lib/models-data";
+import { getProviderApiKey, getOllamaBaseUrl } from "@/lib/client-ai";
 
-export type ModelOption = {
-  id: string;
-  name?: string;
-  label: string;
-  tier?: string;
-  provider: "gemini" | "openai" | "ollama" | "nvidia" | "custom";
-  description?: string;
-  configured?: boolean;
-};
+export { type ModelOption };
 
-let cache: { models: ModelOption[]; defaultModel: string } | null = null;
+function computeConfiguredModels(baseModels: ModelOption[]): ModelOption[] {
+  const hasGemini = typeof window !== "undefined" ? !!getProviderApiKey("gemini") : true;
+  const hasOpenAI = typeof window !== "undefined" ? !!getProviderApiKey("openai") : false;
+  const hasOllama = typeof window !== "undefined" ? !!getOllamaBaseUrl() : false;
+  const hasNvidia = typeof window !== "undefined" ? !!getProviderApiKey("nvidia") : false;
 
-const PROVIDER_NAMES: Record<string, string> = {
-  gemini: "Google Gemini",
-  openai: "OpenAI",
-  ollama: "Local / Ollama",
-  nvidia: "NVIDIA NIM",
-  custom: "Custom Endpoint",
+  return baseModels.map((m) => {
+    let configured: boolean = m.configured ?? false;
+    if (m.provider === "gemini") configured = hasGemini;
+    else if (m.provider === "openai") configured = hasOpenAI;
+    else if (m.provider === "ollama") configured = hasOllama;
+    else if (m.provider === "nvidia") configured = hasNvidia;
+    return { ...m, configured };
+  });
+}
+
+let cache: { models: ModelOption[]; defaultModel: string } = {
+  models: computeConfiguredModels(ALL_MODELS),
+  defaultModel: DEFAULT_MODEL_ID,
 };
 
 export function useModelCatalog() {
@@ -29,35 +34,51 @@ export function useModelCatalog() {
   const [data, setData] = useState(cache);
 
   useEffect(() => {
-    if (cache) {
-      setData(cache);
-      return;
-    }
     let alive = true;
-    fetch("/api/models")
+    const base = import.meta.env.BASE_URL || "/";
+    const cleanBase = base.endsWith("/") ? base : `${base}/`;
+    const apiUrl = `${cleanBase}api/models`;
+
+    fetch(apiUrl)
       .then((r) => (r.ok ? r.json() : null))
+      .catch(() => fetch(`${cleanBase}api/models.json`).then((r) => (r.ok ? r.json() : null)))
       .then((json) => {
-        if (!alive || !json) return;
-        cache = json as { models: ModelOption[]; defaultModel: string };
-        setData(cache);
+        if (!alive || !json || !Array.isArray(json.models) || json.models.length === 0) return;
+        const mergedMap = new Map<string, ModelOption>();
+        // Add built-ins first
+        for (const m of computeConfiguredModels(ALL_MODELS)) {
+          mergedMap.set(m.id, m);
+        }
+        // Overlay server response
+        for (const m of json.models) {
+          mergedMap.set(m.id, { ...(mergedMap.get(m.id) || {}), ...m });
+        }
+        const updated = {
+          models: Array.from(mergedMap.values()),
+          defaultModel: json.defaultModel || DEFAULT_MODEL_ID,
+        };
+        cache = updated;
+        setData(updated);
       })
       .catch(() => {});
+
     return () => {
       alive = false;
     };
   }, []);
 
-  const models = data?.models ?? [];
-  const activeId = settings.model || data?.defaultModel || "gemini-3.5-flash-lite";
-  const activeModel = models.find((m) => m.id === activeId) || {
-    id: "gemini-3.5-flash-lite",
-    name: "Gemini 3.5 Flash Lite",
-    label: "Gemini 3.5 Flash Lite",
-    tier: "Fast & Stable",
-    provider: "gemini" as const,
-    description: "Ultra-fast response time & verified reliable (Recommended)",
-    configured: true,
-  };
+  const models = data?.models?.length ? data.models : computeConfiguredModels(ALL_MODELS);
+  const activeId = settings.model || data?.defaultModel || DEFAULT_MODEL_ID;
+  const activeModel = models.find((m) => m.id === activeId) ||
+    models[0] || {
+      id: DEFAULT_MODEL_ID,
+      name: "Gemini 3.5 Flash Lite",
+      label: "Gemini 3.5 Flash Lite",
+      tier: "Fast & Stable",
+      provider: "gemini" as const,
+      description: "Ultra-fast response time & verified reliable (Recommended)",
+      configured: true,
+    };
 
   const selectModel = (id: string) => {
     updateSettings({ model: id });
@@ -65,7 +86,7 @@ export function useModelCatalog() {
     const title = target?.name || target?.label || id;
     const tier = target?.tier || "Standard";
     if (target?.configured === false) {
-      toast.warning(`${title} requires API configuration in .env to function.`);
+      toast.warning(`${title} requires an API key in Settings.`);
     } else {
       toast.success(`Switched to ${title} (${tier})`);
     }
@@ -214,9 +235,7 @@ export function ModelPickerMenu({
                   </p>
                 )}
               </div>
-              {isCurrent && (
-                <Check className="size-4 text-[--color-electric] shrink-0 mt-0.5" />
-              )}
+              {isCurrent && <Check className="size-4 text-[--color-electric] shrink-0 mt-0.5" />}
             </button>
           );
         })}
@@ -254,9 +273,7 @@ export function ModelPickerPill({
       <span className="font-medium text-foreground/90 group-hover:text-foreground">
         {displayName}
       </span>
-      <span className="text-[11px] text-muted-foreground/75 font-normal">
-        {displayTier}
-      </span>
+      <span className="text-[11px] text-muted-foreground/75 font-normal">{displayTier}</span>
       <ChevronUp
         className={cn(
           "h-3.5 w-3.5 text-muted-foreground/70 transition-transform duration-200",

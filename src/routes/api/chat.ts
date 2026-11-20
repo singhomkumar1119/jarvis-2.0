@@ -74,9 +74,7 @@ function resolveModel(requestedModel?: string): ResolvedModel {
 
   // Determine provider intent
   const isGemini =
-    rawId?.startsWith("gemini") ||
-    rawId?.startsWith("gemma") ||
-    (!rawId && geminiKey);
+    rawId?.startsWith("gemini") || rawId?.startsWith("gemma") || (!rawId && geminiKey);
 
   const isOpenAI =
     rawId?.startsWith("gpt-") ||
@@ -90,14 +88,17 @@ function resolveModel(requestedModel?: string): ResolvedModel {
     rawId === "mistral" ||
     rawId?.startsWith("ollama");
 
-  const isNvidia = rawId?.startsWith("nvidia/") || (!rawId && !geminiKey && !openaiKey && nvidiaKey);
+  const isNvidia =
+    rawId?.startsWith("nvidia/") || (!rawId && !geminiKey && !openaiKey && nvidiaKey);
 
   const isCustom = rawId === "custom" || (!rawId && customUrl);
 
   // 1. Google Gemini
   if (isGemini) {
     if (!geminiKey) {
-      throw new Error("Google Gemini API key is missing. Please add GEMINI_API_KEY to your .env file.");
+      throw new Error(
+        "Google Gemini API key is missing. Please add GEMINI_API_KEY to your .env file.",
+      );
     }
     const provider = createGeminiProvider(geminiKey);
     const activeId = rawId || "gemini-3.5-flash-lite";
@@ -125,7 +126,7 @@ function resolveModel(requestedModel?: string): ResolvedModel {
   if (isOpenAI) {
     if (!openaiKey) {
       throw new Error(
-        "OpenAI API key is missing. Please configure OPENAI_API_KEY in your .env file to use OpenAI models."
+        "OpenAI API key is missing. Please configure OPENAI_API_KEY in your .env file to use OpenAI models.",
       );
     }
     const activeId = rawId || "gpt-4o-mini";
@@ -143,7 +144,9 @@ function resolveModel(requestedModel?: string): ResolvedModel {
   // 4. Custom endpoint
   if (isCustom || customUrl) {
     if (!customUrl) {
-      throw new Error("Custom AI endpoint URL is missing. Please configure AI_BASE_URL in your .env file.");
+      throw new Error(
+        "Custom AI endpoint URL is missing. Please configure AI_BASE_URL in your .env file.",
+      );
     }
     const activeId = rawId || process.env["AI_MODEL"] || "custom-model";
     const provider = createCustomProvider(customUrl, process.env["AI_API_KEY"]);
@@ -154,7 +157,7 @@ function resolveModel(requestedModel?: string): ResolvedModel {
   if (isNvidia) {
     if (!nvidiaKey) {
       throw new Error(
-        "NVIDIA NIM API key is missing. Please configure NVIDIA_API_KEY in your .env file."
+        "NVIDIA NIM API key is missing. Please configure NVIDIA_API_KEY in your .env file.",
       );
     }
     const activeId = rawId || "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning";
@@ -172,7 +175,7 @@ function resolveModel(requestedModel?: string): ResolvedModel {
   }
 
   throw new Error(
-    "No AI provider configured. Please add GEMINI_API_KEY to your .env file (free at https://aistudio.google.com/)."
+    "No AI provider configured. Please add GEMINI_API_KEY to your .env file (free at https://aistudio.google.com/).",
   );
 }
 
@@ -240,7 +243,10 @@ export const Route = createFileRoute("/api/chat")({
               parts.push({ type: "image", image: f.dataUrl });
             } else if (f.mediaType === "application/pdf") {
               parts.push({ type: "file", data: f.dataUrl, mediaType: f.mediaType });
-            } else if (/^text\/|json|xml|csv|javascript|typescript/.test(f.mediaType) || !f.mediaType) {
+            } else if (
+              /^text\/|json|xml|csv|javascript|typescript/.test(f.mediaType) ||
+              !f.mediaType
+            ) {
               const text = decodeText(f.dataUrl);
               parts.push({ type: "text", text: `Attached file "${f.name}":\n\n${text}` });
             } else {
@@ -328,7 +334,10 @@ export const Route = createFileRoute("/api/chat")({
               try {
                 const { db } = await import("@/db");
                 const { chatHistory } = await import("@/db/schema");
-                const question = String(messages[messages.length - 1]?.content ?? "").slice(0, 8000);
+                const question = String(messages[messages.length - 1]?.content ?? "").slice(
+                  0,
+                  8000,
+                );
                 await db.insert(chatHistory).values({
                   id: crypto.randomUUID(),
                   userId: "owner",

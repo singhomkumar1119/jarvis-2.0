@@ -27,8 +27,16 @@ const MENU = [
 ] as const;
 
 export function InputBar({ channel }: { channel: "chat" | "terminal" }) {
-  const { send, activity, toggleListening, transcript, stop, addTask, permissions, requestPermission } =
-    useJarvis();
+  const {
+    send,
+    activity,
+    toggleListening,
+    transcript,
+    stop,
+    addTask,
+    permissions,
+    requestPermission,
+  } = useJarvis();
   const [value, setValue] = useState("");
   const [focused, setFocused] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -72,7 +80,9 @@ export function InputBar({ channel }: { channel: "chat" | "terminal" }) {
     void Promise.all(list.map((f) => uploadTrackedFile(f, kind)));
     list.forEach(async (f) => {
       if (f.size > MAX_INLINE_BYTES) {
-        toast(`${f.name} is too large for Jarvis to read`, { description: "Attach files under 8 MB." });
+        toast(`${f.name} is too large for Jarvis to read`, {
+          description: "Attach files under 8 MB.",
+        });
         return;
       }
       const dataUrl = await readDataUrl(f);
@@ -95,7 +105,8 @@ export function InputBar({ channel }: { channel: "chat" | "terminal" }) {
       cameraRef.current?.click();
     }
     if (key === "document") fileRef.current?.click();
-    if (key === "screen") toast("Screen sharing isn't connected yet", { description: "Simulated in this preview." });
+    if (key === "screen")
+      toast("Screen sharing isn't connected yet", { description: "Simulated in this preview." });
     if (key === "task") {
       addTask(value.trim() || "New task from Jarvis");
       setValue("");
@@ -270,7 +281,13 @@ export function InputBar({ channel }: { channel: "chat" | "terminal" }) {
         </div>
       </div>
 
-      <input ref={fileRef} type="file" multiple hidden onChange={(e) => attach(e.target.files, "file")} />
+      <input
+        ref={fileRef}
+        type="file"
+        multiple
+        hidden
+        onChange={(e) => attach(e.target.files, "file")}
+      />
       <input
         ref={imageRef}
         type="file"

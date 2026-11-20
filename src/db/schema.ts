@@ -1,5 +1,10 @@
 import { sqliteTable, text as sqText, integer as sqInteger } from "drizzle-orm/sqlite-core";
-import { pgTable, text as pgText, bigint as pgBigint, integer as pgInteger } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text as pgText,
+  bigint as pgBigint,
+  integer as pgInteger,
+} from "drizzle-orm/pg-core";
 
 export const isPostgres = () => {
   const url = process.env.DATABASE_URL || "";

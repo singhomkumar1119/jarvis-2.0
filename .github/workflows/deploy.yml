@@ -41,6 +41,8 @@ jobs:
         env:
           GITHUB_PAGES: "true"
           BASE_PATH: "/jarvis-2.0/"
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

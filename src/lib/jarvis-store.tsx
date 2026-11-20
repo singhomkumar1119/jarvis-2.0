@@ -19,6 +19,7 @@ import {
 } from "@/lib/speech";
 import { toast } from "sonner";
 import { track } from "@/lib/tracking";
+import { streamClientAI } from "@/lib/client-ai";
 
 export type Activity = "idle" | "listening" | "thinking" | "speaking" | "offline";
 
@@ -127,9 +128,27 @@ export function JarvisProvider({ children }: { children: ReactNode }) {
     },
   ]);
   const [tasks, setTasks] = useState<Task[]>([
-    { id: uid(), title: "Index knowledge base", detail: "1,204 documents", progress: 100, state: "done" },
-    { id: uid(), title: "Summarize weekly briefing", detail: "Waiting on source access", progress: 42, state: "running" },
-    { id: uid(), title: "Draft release notes", detail: "Queued behind briefing", progress: 0, state: "queued" },
+    {
+      id: uid(),
+      title: "Index knowledge base",
+      detail: "1,204 documents",
+      progress: 100,
+      state: "done",
+    },
+    {
+      id: uid(),
+      title: "Summarize weekly briefing",
+      detail: "Waiting on source access",
+      progress: 42,
+      state: "running",
+    },
+    {
+      id: uid(),
+      title: "Draft release notes",
+      detail: "Queued behind briefing",
+      progress: 0,
+      state: "queued",
+    },
   ]);
   const [activity, setActivity] = useState<Activity>("idle");
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
@@ -219,7 +238,11 @@ export function JarvisProvider({ children }: { children: ReactNode }) {
         content: m.text || (m.attachments?.length ? "Please look at the attached file(s)." : ""),
         attachments: m.attachments
           ?.filter((a) => a.dataUrl)
-          .map((a) => ({ name: a.name, mediaType: a.mediaType ?? "application/octet-stream", dataUrl: a.dataUrl! })),
+          .map((a) => ({
+            name: a.name,
+            mediaType: a.mediaType ?? "application/octet-stream",
+            dataUrl: a.dataUrl!,
+          })),
       }));
 
     // Only the newest turn carries file data — older ones would blow up the payload.
@@ -236,43 +259,78 @@ export function JarvisProvider({ children }: { children: ReactNode }) {
     ]);
 
     try {
-      const token = typeof window !== "undefined" && localStorage.getItem("jarvis_unlocked") === "1" ? "owner" : "";
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          messages: history,
-          channel,
-          personality: settingsRef.current.personality,
-          model: settingsRef.current.model || undefined,
-        }),
-        signal: controller.signal,
-      });
+      const token =
+        typeof window !== "undefined" && localStorage.getItem("jarvis_unlocked") === "1"
+          ? "owner"
+          : "";
+      const base = import.meta.env.BASE_URL || "/";
+      const cleanBase = base.endsWith("/") ? base : `${base}/`;
+      const chatUrl = `${cleanBase}api/chat`;
 
-      if (!res.ok || !res.body) {
-        let detail = (await res.text().catch(() => "")) || "Jarvis couldn't reach the AI gateway.";
-        if (res.status === 404) {
-          detail = "Jarvis AI server endpoint is not available on static GitHub Pages. GitHub Pages hosts the static interface. To use live AI chat, run locally via npm run dev or host on a Node server like Vercel or Render.";
+      let serverResponse: Response | null = null;
+      let useClientFallback = false;
+
+      try {
+        serverResponse = await fetch(chatUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            messages: history,
+            channel,
+            personality: settingsRef.current.personality,
+            model: settingsRef.current.model || undefined,
+          }),
+          signal: controller.signal,
+        });
+
+        if (serverResponse.status === 404 || !serverResponse.ok) {
+          useClientFallback = true;
         }
-        setMessages((m) =>
-          m.map((msg) => (msg.id === id ? { ...msg, text: detail, streaming: false, error: true } : msg)),
-        );
-        setActivity("idle");
-        return;
+      } catch (fetchErr) {
+        if ((fetchErr as Error)?.name === "AbortError") throw fetchErr;
+        useClientFallback = true;
       }
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        if (!chunk) continue;
-        full += chunk;
-        setMessages((m) => m.map((msg) => (msg.id === id ? { ...msg, text: full } : msg)));
+      if (useClientFallback || !serverResponse || !serverResponse.body) {
+        // Static hosting fallback (e.g. GitHub Pages) or server unavailable: stream directly via client AI engine
+        full = await streamClientAI({
+          model: settingsRef.current.model || "gemini-3.5-flash-lite",
+          messages: history.map((h) => ({
+            role: h.role,
+            content: h.content,
+            text: h.content,
+            ...(h.attachments
+              ? {
+                  attachments: h.attachments.map((a) => ({
+                    name: a.name,
+                    mediaType: a.mediaType,
+                    dataUrl: a.dataUrl,
+                  })),
+                }
+              : {}),
+          })),
+          channel,
+          personality: settingsRef.current.personality,
+          signal: controller.signal,
+          onChunk: (streamedText) => {
+            full = streamedText;
+            setMessages((m) => m.map((msg) => (msg.id === id ? { ...msg, text: full } : msg)));
+          },
+        });
+      } else {
+        const reader = serverResponse.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          if (!chunk) continue;
+          full += chunk;
+          setMessages((m) => m.map((msg) => (msg.id === id ? { ...msg, text: full } : msg)));
+        }
       }
 
       const completedText = full.trim();
@@ -281,7 +339,8 @@ export function JarvisProvider({ children }: { children: ReactNode }) {
         /^(Jarvis (?:couldn't|completed the request without)|Jarvis is rate limited|Jarvis is out of AI credits)/i.test(
           completedText,
         );
-      const visibleText = completedText || "Jarvis completed the request without an answer. Please retry.";
+      const visibleText =
+        completedText || "Jarvis completed the request without an answer. Please retry.";
       const code = extractCode(visibleText);
       setMessages((m) =>
         m.map((msg) =>
@@ -306,7 +365,16 @@ export function JarvisProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       if ((error as Error)?.name === "AbortError") return;
       setMessages((m) =>
-        m.map((msg) => (msg.id === id ? { ...msg, streaming: false, error: true, text: msg.text || "Jarvis lost the connection. Try again." } : msg)),
+        m.map((msg) =>
+          msg.id === id
+            ? {
+                ...msg,
+                streaming: false,
+                error: true,
+                text: msg.text || "Jarvis lost the connection. Try again.",
+              }
+            : msg,
+        ),
       );
       setActivity("idle");
     }
@@ -337,7 +405,9 @@ export function JarvisProvider({ children }: { children: ReactNode }) {
 
   const retryLast = useCallback(
     (channel: "chat" | "terminal") => {
-      const idx = [...messagesRef.current].reverse().findIndex((x) => x.channel === channel && x.role === "jarvis");
+      const idx = [...messagesRef.current]
+        .reverse()
+        .findIndex((x) => x.channel === channel && x.role === "jarvis");
       if (idx !== -1) {
         const realIdx = messagesRef.current.length - 1 - idx;
         messagesRef.current = messagesRef.current.filter((_, i) => i !== realIdx);
@@ -478,7 +548,6 @@ export function JarvisProvider({ children }: { children: ReactNode }) {
     },
     [finishVoice],
   );
-
 
   const setListening = useCallback(
     (v: boolean) => {

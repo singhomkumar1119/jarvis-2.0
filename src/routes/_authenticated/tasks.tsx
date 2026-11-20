@@ -8,7 +8,10 @@ export const Route = createFileRoute("/_authenticated/tasks")({
   head: () => ({
     meta: [
       { title: "Tasks — Jarvis" },
-      { name: "description", content: "Track what Jarvis is working on, with live progress for each task." },
+      {
+        name: "description",
+        content: "Track what Jarvis is working on, with live progress for each task.",
+      },
       { property: "og:title", content: "Tasks — Jarvis" },
       { property: "og:description", content: "Live progress for everything Jarvis is running." },
       { property: "og:type", content: "website" },
@@ -38,7 +41,9 @@ function Tasks() {
   return (
     <Page padBottom={false}>
       <PageHeader title="Tasks" subtitle="What Jarvis is working on right now" />
-      <h2 className="mb-4 text-xs uppercase tracking-[0.2em] text-muted-foreground">Active and queued tasks</h2>
+      <h2 className="mb-4 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+        Active and queued tasks
+      </h2>
       <div className="grid gap-4 sm:grid-cols-2">
         {tasks.map((t) => {
           const Icon = ICONS[t.state];
@@ -46,7 +51,11 @@ function Tasks() {
             <Panel key={t.id} className="animate-rise">
               <div className="flex items-start gap-3">
                 <Icon
-                  className={cn("mt-0.5 h-4.5 w-4.5 shrink-0", TONE[t.state], t.state === "running" && "animate-spin")}
+                  className={cn(
+                    "mt-0.5 h-4.5 w-4.5 shrink-0",
+                    TONE[t.state],
+                    t.state === "running" && "animate-spin",
+                  )}
                 />
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate text-sm font-medium text-foreground">{t.title}</h3>

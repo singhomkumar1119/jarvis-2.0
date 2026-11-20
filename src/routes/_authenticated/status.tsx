@@ -26,7 +26,10 @@ export const Route = createFileRoute("/_authenticated/status")({
           "Real-time Jarvis status: connection, battery, storage, permissions, weather and current activity.",
       },
       { property: "og:title", content: "Jarvis Status — live system panel" },
-      { property: "og:description", content: "Connection, permissions and device telemetry at a glance." },
+      {
+        property: "og:description",
+        content: "Connection, permissions and device telemetry at a glance.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -94,7 +97,10 @@ function Status() {
     window.addEventListener("online", on);
     window.addEventListener("offline", off);
     const nav = navigator as Navigator & { getBattery?: () => Promise<{ level: number }> };
-    nav.getBattery?.().then((b) => setBattery(Math.round(b.level * 100))).catch(() => setBattery(null));
+    nav
+      .getBattery?.()
+      .then((b) => setBattery(Math.round(b.level * 100)))
+      .catch(() => setBattery(null));
     return () => {
       clearInterval(id);
       window.removeEventListener("online", on);
@@ -112,7 +118,9 @@ function Status() {
         : "Permission not granted";
 
   const grantAction = (k: PermissionKey) =>
-    permissions[k] === "granted" ? undefined : { label: "Allow", onClick: () => requestPermission(k) };
+    permissions[k] === "granted"
+      ? undefined
+      : { label: "Allow", onClick: () => requestPermission(k) };
 
   return (
     <Page padBottom={false}>
@@ -121,10 +129,14 @@ function Status() {
         subtitle="Live signals. Device data stays unavailable until you grant permission."
       />
 
-      <h2 className="mb-3 text-xs uppercase tracking-[0.2em] text-muted-foreground">Current activity</h2>
+      <h2 className="mb-3 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+        Current activity
+      </h2>
       <Panel className="mb-5 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Current activity</p>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+            Current activity
+          </p>
           <p className="mt-1 text-2xl font-medium capitalize text-foreground">{activity}</p>
         </div>
         <span
@@ -135,7 +147,9 @@ function Status() {
         />
       </Panel>
 
-      <h2 className="mb-3 text-xs uppercase tracking-[0.2em] text-muted-foreground">Device and connection signals</h2>
+      <h2 className="mb-3 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+        Device and connection signals
+      </h2>
       <div className="grid gap-4 sm:grid-cols-2">
         <StatusCard
           icon={Clock}
@@ -149,26 +163,47 @@ function Status() {
           value={online ? "Connected" : "Offline"}
           tone={online ? "ok" : "bad"}
         />
-        <StatusCard icon={Cpu} label="AI connection" value={online ? "Gateway online" : "Unreachable"} tone={online ? "ok" : "bad"} />
-        <StatusCard icon={Server} label="Server / API" value={online ? "Healthy · 42ms" : "No response"} tone={online ? "ok" : "bad"} />
+        <StatusCard
+          icon={Cpu}
+          label="AI connection"
+          value={online ? "Gateway online" : "Unreachable"}
+          tone={online ? "ok" : "bad"}
+        />
+        <StatusCard
+          icon={Server}
+          label="Server / API"
+          value={online ? "Healthy · 42ms" : "No response"}
+          tone={online ? "ok" : "bad"}
+        />
         <StatusCard
           icon={BatteryMedium}
           label="Battery level"
           value={battery !== null ? `${battery}%` : "Not reported by this device"}
           tone={battery === null ? "off" : battery > 25 ? "ok" : "warn"}
         />
-        <StatusCard icon={HardDrive} label="Device storage" value="Placeholder · 128 GB total" tone="warn" />
+        <StatusCard
+          icon={HardDrive}
+          label="Device storage"
+          value="Placeholder · 128 GB total"
+          tone="warn"
+        />
         <StatusCard
           icon={MapPin}
           label="Location"
-          value={permissions.location === "granted" ? "Approximate: placeholder city" : permValue("location")}
+          value={
+            permissions.location === "granted"
+              ? "Approximate: placeholder city"
+              : permValue("location")
+          }
           tone={permTone("location")}
           {...(grantAction("location") ? { action: grantAction("location")! } : {})}
         />
         <StatusCard
           icon={Cloud}
           label="Weather"
-          value={permissions.weather === "granted" ? "18° · Clear (placeholder)" : permValue("weather")}
+          value={
+            permissions.weather === "granted" ? "18° · Clear (placeholder)" : permValue("weather")
+          }
           tone={permTone("weather")}
           {...(grantAction("weather") ? { action: grantAction("weather")! } : {})}
         />
@@ -189,9 +224,9 @@ function Status() {
       </div>
 
       <p className="mt-6 text-xs leading-relaxed text-muted-foreground">
-        Jarvis has no access to your location, microphone, camera, files or system information unless
-        you explicitly grant it. Values shown as “placeholder” are simulated until real device APIs
-        are connected.
+        Jarvis has no access to your location, microphone, camera, files or system information
+        unless you explicitly grant it. Values shown as “placeholder” are simulated until real
+        device APIs are connected.
       </p>
     </Page>
   );

@@ -23,49 +23,234 @@ export type AppEntry = {
 };
 
 export const APPS: AppEntry[] = [
-  { id: "youtube", name: "YouTube", web: "https://www.youtube.com", scheme: "vnd.youtube://", category: "media",
-    search: (q) => `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}` },
-  { id: "spotify", name: "Spotify", web: "https://open.spotify.com", scheme: "spotify://", category: "media",
-    search: (q) => `https://open.spotify.com/search/${encodeURIComponent(q)}` },
-  { id: "netflix", name: "Netflix", web: "https://www.netflix.com", scheme: "nflx://", category: "media",
-    search: (q) => `https://www.netflix.com/search?q=${encodeURIComponent(q)}` },
-  { id: "primevideo", name: "Prime Video", aliases: ["amazon prime", "prime"], web: "https://www.primevideo.com", category: "media" },
-  { id: "whatsapp", name: "WhatsApp", web: "https://web.whatsapp.com", scheme: "whatsapp://", category: "social" },
-  { id: "instagram", name: "Instagram", aliases: ["insta"], web: "https://www.instagram.com", scheme: "instagram://", category: "social" },
-  { id: "facebook", name: "Facebook", aliases: ["fb"], web: "https://www.facebook.com", scheme: "fb://", category: "social" },
-  { id: "x", name: "X", aliases: ["twitter"], web: "https://x.com", scheme: "twitter://", category: "social" },
-  { id: "telegram", name: "Telegram", web: "https://web.telegram.org", scheme: "tg://", category: "social" },
-  { id: "linkedin", name: "LinkedIn", web: "https://www.linkedin.com", scheme: "linkedin://", category: "social" },
-  { id: "reddit", name: "Reddit", web: "https://www.reddit.com", scheme: "reddit://", category: "social" },
-  { id: "gmail", name: "Gmail", aliases: ["mail", "email"], web: "https://mail.google.com", scheme: "googlegmail://", category: "work" },
-  { id: "calendar", name: "Google Calendar", aliases: ["calendar"], web: "https://calendar.google.com", category: "work" },
-  { id: "drive", name: "Google Drive", aliases: ["drive"], web: "https://drive.google.com", category: "work" },
-  { id: "docs", name: "Google Docs", aliases: ["docs"], web: "https://docs.google.com", category: "work" },
-  { id: "sheets", name: "Google Sheets", aliases: ["sheets", "excel online"], web: "https://sheets.google.com", category: "work" },
-  { id: "maps", name: "Google Maps", aliases: ["maps"], web: "https://maps.google.com", scheme: "comgooglemaps://", category: "work",
-    search: (q) => `https://www.google.com/maps/search/${encodeURIComponent(q)}` },
-  { id: "notion", name: "Notion", web: "https://www.notion.so", scheme: "notion://", category: "work" },
-  { id: "slack", name: "Slack", web: "https://app.slack.com", scheme: "slack://", category: "work" },
+  {
+    id: "youtube",
+    name: "YouTube",
+    web: "https://www.youtube.com",
+    scheme: "vnd.youtube://",
+    category: "media",
+    search: (q) => `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`,
+  },
+  {
+    id: "spotify",
+    name: "Spotify",
+    web: "https://open.spotify.com",
+    scheme: "spotify://",
+    category: "media",
+    search: (q) => `https://open.spotify.com/search/${encodeURIComponent(q)}`,
+  },
+  {
+    id: "netflix",
+    name: "Netflix",
+    web: "https://www.netflix.com",
+    scheme: "nflx://",
+    category: "media",
+    search: (q) => `https://www.netflix.com/search?q=${encodeURIComponent(q)}`,
+  },
+  {
+    id: "primevideo",
+    name: "Prime Video",
+    aliases: ["amazon prime", "prime"],
+    web: "https://www.primevideo.com",
+    category: "media",
+  },
+  {
+    id: "whatsapp",
+    name: "WhatsApp",
+    web: "https://web.whatsapp.com",
+    scheme: "whatsapp://",
+    category: "social",
+  },
+  {
+    id: "instagram",
+    name: "Instagram",
+    aliases: ["insta"],
+    web: "https://www.instagram.com",
+    scheme: "instagram://",
+    category: "social",
+  },
+  {
+    id: "facebook",
+    name: "Facebook",
+    aliases: ["fb"],
+    web: "https://www.facebook.com",
+    scheme: "fb://",
+    category: "social",
+  },
+  {
+    id: "x",
+    name: "X",
+    aliases: ["twitter"],
+    web: "https://x.com",
+    scheme: "twitter://",
+    category: "social",
+  },
+  {
+    id: "telegram",
+    name: "Telegram",
+    web: "https://web.telegram.org",
+    scheme: "tg://",
+    category: "social",
+  },
+  {
+    id: "linkedin",
+    name: "LinkedIn",
+    web: "https://www.linkedin.com",
+    scheme: "linkedin://",
+    category: "social",
+  },
+  {
+    id: "reddit",
+    name: "Reddit",
+    web: "https://www.reddit.com",
+    scheme: "reddit://",
+    category: "social",
+  },
+  {
+    id: "gmail",
+    name: "Gmail",
+    aliases: ["mail", "email"],
+    web: "https://mail.google.com",
+    scheme: "googlegmail://",
+    category: "work",
+  },
+  {
+    id: "calendar",
+    name: "Google Calendar",
+    aliases: ["calendar"],
+    web: "https://calendar.google.com",
+    category: "work",
+  },
+  {
+    id: "drive",
+    name: "Google Drive",
+    aliases: ["drive"],
+    web: "https://drive.google.com",
+    category: "work",
+  },
+  {
+    id: "docs",
+    name: "Google Docs",
+    aliases: ["docs"],
+    web: "https://docs.google.com",
+    category: "work",
+  },
+  {
+    id: "sheets",
+    name: "Google Sheets",
+    aliases: ["sheets", "excel online"],
+    web: "https://sheets.google.com",
+    category: "work",
+  },
+  {
+    id: "maps",
+    name: "Google Maps",
+    aliases: ["maps"],
+    web: "https://maps.google.com",
+    scheme: "comgooglemaps://",
+    category: "work",
+    search: (q) => `https://www.google.com/maps/search/${encodeURIComponent(q)}`,
+  },
+  {
+    id: "notion",
+    name: "Notion",
+    web: "https://www.notion.so",
+    scheme: "notion://",
+    category: "work",
+  },
+  {
+    id: "slack",
+    name: "Slack",
+    web: "https://app.slack.com",
+    scheme: "slack://",
+    category: "work",
+  },
   { id: "zoom", name: "Zoom", web: "https://zoom.us", scheme: "zoomus://", category: "work" },
-  { id: "meet", name: "Google Meet", aliases: ["meet"], web: "https://meet.google.com", category: "work" },
-  { id: "teams", name: "Microsoft Teams", aliases: ["teams"], web: "https://teams.microsoft.com", scheme: "msteams://", category: "work" },
-  { id: "github", name: "GitHub", web: "https://github.com", category: "dev",
-    search: (q) => `https://github.com/search?q=${encodeURIComponent(q)}` },
-  { id: "stackoverflow", name: "Stack Overflow", web: "https://stackoverflow.com", category: "dev" },
-  { id: "vscode", name: "VS Code", aliases: ["visual studio code", "code editor"], web: "https://vscode.dev", scheme: "vscode://", category: "dev" },
+  {
+    id: "meet",
+    name: "Google Meet",
+    aliases: ["meet"],
+    web: "https://meet.google.com",
+    category: "work",
+  },
+  {
+    id: "teams",
+    name: "Microsoft Teams",
+    aliases: ["teams"],
+    web: "https://teams.microsoft.com",
+    scheme: "msteams://",
+    category: "work",
+  },
+  {
+    id: "github",
+    name: "GitHub",
+    web: "https://github.com",
+    category: "dev",
+    search: (q) => `https://github.com/search?q=${encodeURIComponent(q)}`,
+  },
+  {
+    id: "stackoverflow",
+    name: "Stack Overflow",
+    web: "https://stackoverflow.com",
+    category: "dev",
+  },
+  {
+    id: "vscode",
+    name: "VS Code",
+    aliases: ["visual studio code", "code editor"],
+    web: "https://vscode.dev",
+    scheme: "vscode://",
+    category: "dev",
+  },
   { id: "ollama", name: "Ollama", web: "http://localhost:11434", category: "ai" },
-  { id: "chatgpt", name: "ChatGPT", aliases: ["open ai", "openai"], web: "https://chat.openai.com", category: "ai" },
+  {
+    id: "chatgpt",
+    name: "ChatGPT",
+    aliases: ["open ai", "openai"],
+    web: "https://chat.openai.com",
+    category: "ai",
+  },
   { id: "gemini", name: "Gemini", web: "https://gemini.google.com", category: "ai" },
   { id: "claude", name: "Claude", web: "https://claude.ai", category: "ai" },
   { id: "perplexity", name: "Perplexity", web: "https://www.perplexity.ai", category: "ai" },
-  { id: "amazon", name: "Amazon", web: "https://www.amazon.com", category: "shopping",
-    search: (q) => `https://www.amazon.com/s?k=${encodeURIComponent(q)}` },
-  { id: "flipkart", name: "Flipkart", web: "https://www.flipkart.com", category: "shopping",
-    search: (q) => `https://www.flipkart.com/search?q=${encodeURIComponent(q)}` },
-  { id: "google", name: "Google", aliases: ["search", "browser"], web: "https://www.google.com", category: "system",
-    search: (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}` },
-  { id: "phone", name: "Phone", aliases: ["dialer", "call"], web: "tel:", scheme: "tel:", category: "system" },
-  { id: "sms", name: "Messages", aliases: ["text message", "sms"], web: "sms:", scheme: "sms:", category: "system" },
+  {
+    id: "amazon",
+    name: "Amazon",
+    web: "https://www.amazon.com",
+    category: "shopping",
+    search: (q) => `https://www.amazon.com/s?k=${encodeURIComponent(q)}`,
+  },
+  {
+    id: "flipkart",
+    name: "Flipkart",
+    web: "https://www.flipkart.com",
+    category: "shopping",
+    search: (q) => `https://www.flipkart.com/search?q=${encodeURIComponent(q)}`,
+  },
+  {
+    id: "google",
+    name: "Google",
+    aliases: ["search", "browser"],
+    web: "https://www.google.com",
+    category: "system",
+    search: (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}`,
+  },
+  {
+    id: "phone",
+    name: "Phone",
+    aliases: ["dialer", "call"],
+    web: "tel:",
+    scheme: "tel:",
+    category: "system",
+  },
+  {
+    id: "sms",
+    name: "Messages",
+    aliases: ["text message", "sms"],
+    web: "sms:",
+    scheme: "sms:",
+    category: "system",
+  },
   { id: "camera", name: "Camera", web: "https://camera.google.com", category: "system" },
 ];
 
@@ -78,7 +263,11 @@ export type LaunchIntent = {
 };
 
 function normalize(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /** Parses commands like "open youtube", "launch spotify and play lofi". */
@@ -104,7 +293,8 @@ export function parseLaunchIntent(input: string): LaunchIntent | null {
   const app = best.app;
   const names = [app.name, ...(app.aliases ?? [])].map(normalize);
   let rest = after;
-  for (const n of names) rest = rest.replace(new RegExp(`\\b${n.replace(/ /g, "\\s+")}\\b`, "g"), " ");
+  for (const n of names)
+    rest = rest.replace(new RegExp(`\\b${n.replace(/ /g, "\\s+")}\\b`, "g"), " ");
   rest = rest
     .replace(/\b(and|then|please|app|the|for|in|on)\b/g, " ")
     .replace(/\b(search|play|find|look up|watch|listen to)\b/g, " ")

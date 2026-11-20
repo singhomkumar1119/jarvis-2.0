@@ -14,7 +14,10 @@ export const Route = createFileRoute("/_authenticated/terminal")({
         content: "A monospaced developer console for Jarvis with syntax-highlighted output.",
       },
       { property: "og:title", content: "Terminal — Jarvis" },
-      { property: "og:description", content: "Run technical commands through Jarvis in terminal mode." },
+      {
+        property: "og:description",
+        content: "Run technical commands through Jarvis in terminal mode.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -50,7 +53,12 @@ function Terminal() {
             </p>
           )}
           {list.map((m) => (
-            <ChatMessage key={m.id} message={m} onRetry={() => retryLast("terminal")} onStop={stop} />
+            <ChatMessage
+              key={m.id}
+              message={m}
+              onRetry={() => retryLast("terminal")}
+              onStop={stop}
+            />
           ))}
           <div ref={endRef} />
         </div>

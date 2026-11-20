@@ -9,8 +9,8 @@ A futuristic personal AI assistant with a cinematic dark-mode liquid-glass inter
 ## ✨ Features
 
 - **🌐 Liquid Glass Interface**: Translucent glassmorphic surfaces, soft blur, adaptive highlights, and dark cinematic atmosphere inspired by Apple Liquid Glass.
-- **✨ Animated Jarvis Presence Orb**: Transparent, light-refracting organic orb that dynamically reacts to assistant states (`idle`, `listening`, `thinking`, `speaking`, `offline`) with customizable themes (*Aurora*, *Plasma*, *Glacier*, *Ember*).
-- **🎙️ Voice Interaction & TTS**: Speaks responses aloud with customizable synthetic voice tones and speeds (*Atlas*, *Nova*, *Orion*, *Lumen*), along with voice dictation input.
+- **✨ Animated Jarvis Presence Orb**: Transparent, light-refracting organic orb that dynamically reacts to assistant states (`idle`, `listening`, `thinking`, `speaking`, `offline`) with customizable themes (_Aurora_, _Plasma_, _Glacier_, _Ember_).
+- **🎙️ Voice Interaction & TTS**: Speaks responses aloud with customizable synthetic voice tones and speeds (_Atlas_, _Nova_, _Orion_, _Lumen_), along with voice dictation input.
 - **💬 Dual Interaction Modes**:
   - **Chat Interface**: Clean conversation cards for daily queries and multimodal tasks.
   - **Developer Terminal**: Monospaced code-first terminal mode with syntax highlighting, copy controls, and retry options.
@@ -71,13 +71,13 @@ Visit [`http://localhost:3000`](http://localhost:3000) in your browser.
 
 Jarvis supports multiple AI backends configurable via `.env`:
 
-| Provider | Environment Variable | Recommended Models | Description |
-| :--- | :--- | :--- | :--- |
-| **Google Gemini** | `GEMINI_API_KEY` | `gemini-2.5-flash`, `gemini-1.5-pro` | Default recommended. Free tier, fast streaming, vision support. |
-| **Ollama** | `OLLAMA_BASE_URL` | `llama3.2`, `mistral`, `deepseek-r1` | 100% local and offline. Runs directly on your machine. |
-| **OpenAI** | `OPENAI_API_KEY` | `gpt-4o`, `gpt-4o-mini` | Official OpenAI models. |
-| **NVIDIA** | `NVIDIA_API_KEY` | `nvidia/nemotron-3-nano-omni-30b` | High-speed cloud reasoning models. |
-| **Custom** | `AI_BASE_URL` | Any OpenAI-compatible model | Works with Groq, Together AI, OpenRouter, or vLLM. |
+| Provider          | Environment Variable | Recommended Models                   | Description                                                     |
+| :---------------- | :------------------- | :----------------------------------- | :-------------------------------------------------------------- |
+| **Google Gemini** | `GEMINI_API_KEY`     | `gemini-2.5-flash`, `gemini-1.5-pro` | Default recommended. Free tier, fast streaming, vision support. |
+| **Ollama**        | `OLLAMA_BASE_URL`    | `llama3.2`, `mistral`, `deepseek-r1` | 100% local and offline. Runs directly on your machine.          |
+| **OpenAI**        | `OPENAI_API_KEY`     | `gpt-4o`, `gpt-4o-mini`              | Official OpenAI models.                                         |
+| **NVIDIA**        | `NVIDIA_API_KEY`     | `nvidia/nemotron-3-nano-omni-30b`    | High-speed cloud reasoning models.                              |
+| **Custom**        | `AI_BASE_URL`        | Any OpenAI-compatible model          | Works with Groq, Together AI, OpenRouter, or vLLM.              |
 
 ---
 
@@ -86,13 +86,17 @@ Jarvis supports multiple AI backends configurable via `.env`:
 Jarvis features a flexible hybrid database architecture supporting both local offline SQLite and cloud-hosted **Supabase PostgreSQL**:
 
 ### Option 1: Local SQLite (Default)
+
 Stored locally in the `./data/` folder:
+
 - **`./data/jarvis.db`**: Local SQLite database for conversation history, tasks, and system events.
 - **`./data/uploads/`**: Uploaded attachments and media files.
-Zero external databases required — auto-initialized on first boot.
+  Zero external databases required — auto-initialized on first boot.
 
 ### Option 2: Supabase (Cloud PostgreSQL)
+
 To connect your own Supabase database:
+
 1. Create a free project at [supabase.com](https://supabase.com).
 2. Go to **SQL Editor** in your Supabase dashboard and run the setup script:
    [`drizzle/supabase_setup.sql`](file:///c:/Users/Server/.gemini/antigravity-ide/scratch/jarvis-ai-iron-main/drizzle/supabase_setup.sql)
@@ -101,7 +105,7 @@ To connect your own Supabase database:
    ```env
    DATABASE_URL="postgresql://postgres.[YOUR-PROJECT-REF]:[YOUR-PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres"
    ```
-5. *(Optional)* Migrate all your existing local SQLite chats and tasks to Supabase:
+5. _(Optional)_ Migrate all your existing local SQLite chats and tasks to Supabase:
    ```bash
    npm run db:migrate-supabase
    ```

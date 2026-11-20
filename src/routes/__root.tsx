@@ -46,7 +46,11 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
   useEffect(() => {
     const msg = String((error as Error | undefined)?.message ?? "");
-    if (/Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module/i.test(msg)) {
+    if (
+      /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module/i.test(
+        msg,
+      )
+    ) {
       try {
         const k = "jarvis-chunk-reload";
         const t = Number(sessionStorage.getItem(k) || 0);
@@ -96,7 +100,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" },
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content",
+      },
       { name: "google-site-verification", content: "aDoOLhBy75KSkp51ZPvHD7r2vZHPyn7rXLqkRcyTvRY" },
       { title: "Jarvis — Cinematic AI assistant" },
       {
@@ -108,7 +116,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Jarvis — Cinematic AI assistant" },
       {
         property: "og:description",
-        content: "A calm, futuristic AI workspace with a voice-reactive orb and liquid-glass controls.",
+        content:
+          "A calm, futuristic AI workspace with a voice-reactive orb and liquid-glass controls.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -160,8 +169,6 @@ function JarvisShell() {
     track({ eventType: "visit" });
   }, []);
 
-
-
   return (
     <>
       <Ambience />
@@ -189,4 +196,3 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-

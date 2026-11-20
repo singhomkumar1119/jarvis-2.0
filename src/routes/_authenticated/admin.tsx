@@ -15,7 +15,10 @@ export const Route = createFileRoute("/_authenticated/admin")({
         content: "Private console showing messages and activity logged in your local database.",
       },
       { property: "og:title", content: "Jarvis Activity Console" },
-      { property: "og:description", content: "Local database activity and diagnostics in one place." },
+      {
+        property: "og:description",
+        content: "Local database activity and diagnostics in one place.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
@@ -83,15 +86,21 @@ function AdminPage() {
         <>
           <div className="mb-5 grid gap-3 sm:grid-cols-3">
             <Panel className="p-4">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Events</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                Events
+              </p>
               <p className="text-2xl font-medium text-foreground">{events.length}</p>
             </Panel>
             <Panel className="p-4">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Sessions</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                Sessions
+              </p>
               <p className="text-2xl font-medium text-foreground">{sessions}</p>
             </Panel>
             <Panel className="p-4">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Uploads</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                Uploads
+              </p>
               <p className="text-2xl font-medium text-foreground">
                 {events.filter((e) => e.event_type === "upload").length}
               </p>
@@ -111,7 +120,10 @@ function AdminPage() {
                 {f}
               </button>
             ))}
-            <button onClick={() => void refresh()} className="glass-soft rounded-full px-3.5 py-1.5 text-[11px]">
+            <button
+              onClick={() => void refresh()}
+              className="glass-soft rounded-full px-3.5 py-1.5 text-[11px]"
+            >
               Refresh
             </button>
             <button
@@ -142,7 +154,8 @@ function AdminPage() {
                 )}
                 {e.file_name && (
                   <div className="mt-2 text-xs text-cyan">
-                    File: {e.file_name} {e.file_size ? `(${Math.round(e.file_size / 1024)} KB)` : ""}
+                    File: {e.file_name}{" "}
+                    {e.file_size ? `(${Math.round(e.file_size / 1024)} KB)` : ""}
                   </div>
                 )}
               </Panel>

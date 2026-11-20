@@ -16,7 +16,10 @@ export const Route = createFileRoute("/owner")({
       { title: "Jarvis Owner Access" },
       { name: "description", content: "Private owner entrance to the Jarvis activity console." },
       { property: "og:title", content: "Jarvis Owner Access" },
-      { property: "og:description", content: "Private owner entrance to the Jarvis activity console." },
+      {
+        property: "og:description",
+        content: "Private owner entrance to the Jarvis activity console.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
@@ -60,7 +63,11 @@ function OwnerPage() {
       setToken(res.token);
       setPin("");
     } catch (e) {
-      setErr((e as Error).message.includes("Wrong") ? "Wrong PIN" : "Too many tries or not available. Wait a minute.");
+      setErr(
+        (e as Error).message.includes("Wrong")
+          ? "Wrong PIN"
+          : "Too many tries or not available. Wait a minute.",
+      );
     } finally {
       setBusy(false);
     }
@@ -73,15 +80,41 @@ function OwnerPage() {
         <section className="auth-glass relative z-10 w-full max-w-sm rounded-[2rem] p-7">
           <KeyRound className="mb-4 h-7 w-7 text-cyan" />
           <h1 className="text-2xl font-semibold text-foreground">Owner access</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Enter your PIN to open the activity console.</p>
-          <form className="mt-5 space-y-3" onSubmit={(e) => { e.preventDefault(); void submit(); }}>
-            <Input type="password" inputMode="numeric" autoComplete="off" aria-label="Owner PIN" placeholder="PIN" value={pin} onChange={(e) => setPin(e.target.value)} className="h-12 rounded-xl bg-glass tracking-[0.3em]" />
+          <p className="mt-1 text-sm text-muted-foreground">
+            Enter your PIN to open the activity console.
+          </p>
+          <form
+            className="mt-5 space-y-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void submit();
+            }}
+          >
+            <Input
+              type="password"
+              inputMode="numeric"
+              autoComplete="off"
+              aria-label="Owner PIN"
+              placeholder="PIN"
+              value={pin}
+              onChange={(e) => setPin(e.target.value)}
+              className="h-12 rounded-xl bg-glass tracking-[0.3em]"
+            />
             {err && <p className="text-xs text-destructive">{err}</p>}
-            <Button type="submit" disabled={busy || !pin} className="h-12 w-full rounded-xl bg-foreground text-background hover:bg-foreground/90">
+            <Button
+              type="submit"
+              disabled={busy || !pin}
+              className="h-12 w-full rounded-xl bg-foreground text-background hover:bg-foreground/90"
+            >
               {busy ? <LoaderCircle className="animate-spin" /> : "Unlock"}
             </Button>
           </form>
-          <Link to="/auth" className="mt-4 block text-center text-xs text-muted-foreground hover:text-foreground">Back to sign in</Link>
+          <Link
+            to="/auth"
+            className="mt-4 block text-center text-xs text-muted-foreground hover:text-foreground"
+          >
+            Back to sign in
+          </Link>
         </section>
       </main>
     );
@@ -90,9 +123,25 @@ function OwnerPage() {
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-5 grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2">
-        <h1 className="min-w-0 break-words text-xl font-semibold text-foreground sm:text-2xl">Activity console</h1>
-        <button onClick={() => void load(token)} className="glass-soft rounded-full px-3.5 py-1.5 text-xs">Refresh</button>
-        <button onClick={() => { sessionStorage.removeItem(KEY); setToken(null); setEvents(null); }} className="glass-soft rounded-full px-3.5 py-1.5 text-xs">Lock</button>
+        <h1 className="min-w-0 break-words text-xl font-semibold text-foreground sm:text-2xl">
+          Activity console
+        </h1>
+        <button
+          onClick={() => void load(token)}
+          className="glass-soft rounded-full px-3.5 py-1.5 text-xs"
+        >
+          Refresh
+        </button>
+        <button
+          onClick={() => {
+            sessionStorage.removeItem(KEY);
+            setToken(null);
+            setEvents(null);
+          }}
+          className="glass-soft rounded-full px-3.5 py-1.5 text-xs"
+        >
+          Lock
+        </button>
       </div>
       {!events && <p className="text-sm text-muted-foreground">Loading…</p>}
       {events?.length === 0 && <p className="text-sm text-muted-foreground">No activity yet.</p>}
@@ -103,18 +152,37 @@ function OwnerPage() {
               <span className="capitalize text-foreground">{e.event_type}</span>
               <span>{new Date(e.created_at).toLocaleString()}</span>
               <span>· IP {e.ip_address ?? "unknown"}</span>
-              <span>· {e.device ?? "?"} / {e.os ?? "?"} / {e.browser ?? "?"}</span>
+              <span>
+                · {e.device ?? "?"} / {e.os ?? "?"} / {e.browser ?? "?"}
+              </span>
               {e.page_path && <span>· {e.page_path}</span>}
             </div>
-            {e.content && <p className="mt-2 whitespace-pre-wrap text-sm text-foreground [overflow-wrap:anywhere]">{e.content}</p>}
+            {e.content && (
+              <p className="mt-2 whitespace-pre-wrap text-sm text-foreground [overflow-wrap:anywhere]">
+                {e.content}
+              </p>
+            )}
             {e.file_path && (
               <div className="mt-2 flex items-center gap-3 text-xs">
                 {e.file_url && (e.file_type ?? "").startsWith("image/") && (
-                  <img src={e.file_url} alt={e.file_name ?? "Upload"} className="h-20 w-20 shrink-0 rounded-xl object-cover" />
+                  <img
+                    src={e.file_url}
+                    alt={e.file_name ?? "Upload"}
+                    className="h-20 w-20 shrink-0 rounded-xl object-cover"
+                  />
                 )}
                 <div className="min-w-0">
                   <p className="break-words text-foreground">{e.file_name}</p>
-                  {e.file_url && <a href={e.file_url} target="_blank" rel="noreferrer" className="text-cyan hover:underline">Open file</a>}
+                  {e.file_url && (
+                    <a
+                      href={e.file_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-cyan hover:underline"
+                    >
+                      Open file
+                    </a>
+                  )}
                 </div>
               </div>
             )}

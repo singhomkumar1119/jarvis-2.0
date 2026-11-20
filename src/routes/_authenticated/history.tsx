@@ -8,7 +8,10 @@ export const Route = createFileRoute("/_authenticated/history")({
   head: () => ({
     meta: [
       { title: "Chat History — Jarvis" },
-      { name: "description", content: "Your private Jarvis chat history, stored safely in your local database." },
+      {
+        name: "description",
+        content: "Your private Jarvis chat history, stored safely in your local database.",
+      },
       { property: "og:title", content: "Chat History — Jarvis" },
       { property: "og:description", content: "Self-hosted conversation history with Jarvis." },
       { property: "og:type", content: "website" },
@@ -71,13 +74,23 @@ function HistoryPage() {
         {data.map((c) => (
           <Panel key={c.id}>
             <div className="mb-2 flex items-center justify-between text-[11px] text-muted-foreground">
-              <span>{new Date(c.created_at).toLocaleString()} {c.model ? `• ${c.model}` : ""}</span>
-              <button aria-label="Delete chat" onClick={() => remove(c.id)} className="hover:text-destructive">
+              <span>
+                {new Date(c.created_at).toLocaleString()} {c.model ? `• ${c.model}` : ""}
+              </span>
+              <button
+                aria-label="Delete chat"
+                onClick={() => remove(c.id)}
+                className="hover:text-destructive"
+              >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
             </div>
-            <p className="text-sm font-medium text-foreground [overflow-wrap:anywhere]">{c.question}</p>
-            <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground line-clamp-6 [overflow-wrap:anywhere]">{c.answer}</p>
+            <p className="text-sm font-medium text-foreground [overflow-wrap:anywhere]">
+              {c.question}
+            </p>
+            <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground line-clamp-6 [overflow-wrap:anywhere]">
+              {c.answer}
+            </p>
           </Panel>
         ))}
       </div>

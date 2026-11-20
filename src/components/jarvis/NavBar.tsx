@@ -47,7 +47,12 @@ export function NavBar() {
               i === activeIndex ? "text-foreground" : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <Icon className={cn("h-[18px] w-[18px] shrink-0 transition-transform duration-300", i === activeIndex && "scale-110")} />
+            <Icon
+              className={cn(
+                "h-[18px] w-[18px] shrink-0 transition-transform duration-300",
+                i === activeIndex && "scale-110",
+              )}
+            />
             <span className="min-w-0 truncate">{label}</span>
           </Link>
         ))}

@@ -25,7 +25,9 @@ export function createOpenAIProvider(apiKey: string) {
   });
 }
 
-export function createOllamaProvider(baseURL = process.env.OLLAMA_BASE_URL || "http://localhost:11434/v1") {
+export function createOllamaProvider(
+  baseURL = process.env.OLLAMA_BASE_URL || "http://localhost:11434/v1",
+) {
   return createOpenAICompatible({
     name: "ollama",
     baseURL,

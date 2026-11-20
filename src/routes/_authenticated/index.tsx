@@ -20,7 +20,8 @@ export const Route = createFileRoute("/_authenticated/")({
       { name: "twitter:card", content: "summary_large_image" },
       {
         property: "og:description",
-        content: "Talk to Jarvis — a cinematic AI assistant that answers, speaks aloud, listens to your voice and opens your favourite apps.",
+        content:
+          "Talk to Jarvis — a cinematic AI assistant that answers, speaks aloud, listens to your voice and opens your favourite apps.",
       },
     ],
   }),
@@ -37,7 +38,8 @@ const STATUS_COPY: Record<string, { title: string; sub: string }> = {
 
 function greetingFor(date: Date) {
   const h = date.getHours();
-  const part = h < 5 ? "Good evening" : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+  const part =
+    h < 5 ? "Good evening" : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
   return `${part}, sir. All systems are online. How may I assist you today?`;
 }
 
@@ -103,10 +105,7 @@ function Home() {
 
       <div className="mt-5 flex flex-wrap justify-center gap-2 sm:mt-8">
         {["Summarize my day", "Write a shell script", "Explain this error"].map((s) => (
-          <span
-            key={s}
-            className="glass-soft rounded-full px-4 py-2 text-xs text-muted-foreground"
-          >
+          <span key={s} className="glass-soft rounded-full px-4 py-2 text-xs text-muted-foreground">
             {s}
           </span>
         ))}
