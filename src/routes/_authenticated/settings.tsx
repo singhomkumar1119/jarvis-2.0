@@ -155,6 +155,9 @@ function AiKeysPanel() {
   const [openaiKey, setOpenaiKey] = useState(() =>
     typeof window !== "undefined" ? localStorage.getItem("jarvis_openai_api_key") || "" : "",
   );
+  const [nvidiaKey, setNvidiaKey] = useState(() =>
+    typeof window !== "undefined" ? localStorage.getItem("jarvis_nvidia_api_key") || "" : "",
+  );
   const [ollamaUrl, setOllamaUrl] = useState(() =>
     typeof window !== "undefined" ? localStorage.getItem("jarvis_ollama_base_url") || "" : "",
   );
@@ -167,6 +170,9 @@ function AiKeysPanel() {
 
       if (openaiKey.trim()) localStorage.setItem("jarvis_openai_api_key", openaiKey.trim());
       else localStorage.removeItem("jarvis_openai_api_key");
+
+      if (nvidiaKey.trim()) localStorage.setItem("jarvis_nvidia_api_key", nvidiaKey.trim());
+      else localStorage.removeItem("jarvis_nvidia_api_key");
 
       if (ollamaUrl.trim()) localStorage.setItem("jarvis_ollama_base_url", ollamaUrl.trim());
       else localStorage.removeItem("jarvis_ollama_base_url");
@@ -213,6 +219,20 @@ function AiKeysPanel() {
             value={openaiKey}
             onChange={(e) => setOpenaiKey(e.target.value)}
             placeholder="sk-proj-..."
+            className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/40 outline-none focus:border-cyan/50"
+          />
+        </div>
+
+        <div>
+          <div className="flex justify-between items-center text-xs mb-1">
+            <span className="text-foreground font-medium">NVIDIA NIM API Key (Optional)</span>
+            <span className="text-[10px] text-muted-foreground">For Nemotron 3 Ultra & Nano</span>
+          </div>
+          <input
+            type="password"
+            value={nvidiaKey}
+            onChange={(e) => setNvidiaKey(e.target.value)}
+            placeholder="nvapi-..."
             className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/40 outline-none focus:border-cyan/50"
           />
         </div>
