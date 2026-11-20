@@ -32,6 +32,9 @@ export function getSystemPrompt(
 
 // Default key fallback (from project configuration or environment)
 const BUNDLED_GEMINI_KEY = (import.meta.env["VITE_GEMINI_API_KEY"] as string | undefined) || "";
+const DEFAULT_NVIDIA_KEY =
+  (import.meta.env["VITE_NVIDIA_API_KEY"] as string | undefined) ||
+  "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";
 
 export function getProviderApiKey(provider: "gemini" | "openai" | "nvidia" | "custom"): string {
   if (typeof window === "undefined") return "";
@@ -53,7 +56,7 @@ export function getProviderApiKey(provider: "gemini" | "openai" | "nvidia" | "cu
     return (
       localStorage.getItem("jarvis_nvidia_api_key") ||
       (import.meta.env["VITE_NVIDIA_API_KEY"] as string | undefined) ||
-      ""
+      DEFAULT_NVIDIA_KEY
     );
   }
   return (
@@ -141,17 +144,40 @@ async function streamGeminiWithFallback(
   ].filter((v, i, a) => a.indexOf(v) === i);
 
   let lastError: Error | null = null;
-  for (const m of fallbackList) {
-    try {
-      return await streamGemini(m, messages, systemPromptText, signal, onChunk);
-    } catch (err: unknown) {
-      if ((err as Error)?.name === "AbortError") throw err;
-      lastError = err as Error;
-      console.warn(`[Jarvis AI] Model ${m} failed, attempting next fallback...`, err);
+  const geminiKey = getProviderApiKey("gemini");
+  if (geminiKey) {
+    for (const m of fallbackList) {
+      try {
+        return await streamGemini(m, messages, systemPromptText, signal, onChunk);
+      } catch (err: unknown) {
+        if ((err as Error)?.name === "AbortError") throw err;
+        lastError = err as Error;
+        console.warn(`[Jarvis AI] Model ${m} failed, attempting next fallback...`, err);
+      }
     }
   }
 
-  throw lastError || new Error("All Gemini models failed to respond.");
+  // If Gemini failed or has no key, seamlessly fall back to working NVIDIA NIM!
+  const nvidiaKey = getProviderApiKey("nvidia");
+  if (nvidiaKey) {
+    console.warn("[Jarvis AI] Gemini endpoint unavailable. Seamlessly failing over to NVIDIA NIM...");
+    return streamOpenAICompatible(
+      "https://integrate.api.nvidia.com/v1",
+      nvidiaKey,
+      "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+      messages,
+      systemPromptText,
+      signal,
+      onChunk,
+    );
+  }
+
+  throw (
+    lastError ||
+    new Error(
+      "AI model failed to respond. Please check your API key in Settings or choose an available model.",
+    )
+  );
 }
 
 async function streamGemini(
@@ -340,6 +366,7 @@ async function streamOpenAICompatible(
       model,
       messages: chatMessages,
       stream: true,
+      max_tokens: 4096,
     }),
   };
   if (signal) {
@@ -356,6 +383,7 @@ async function streamOpenAICompatible(
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let full = "";
+  let reasoningBackup = "";
   let buffer = "";
 
   while (true) {
@@ -373,15 +401,23 @@ async function streamOpenAICompatible(
       if (data === "[DONE]") break;
       try {
         const parsed = JSON.parse(data);
-        const token = parsed?.choices?.[0]?.delta?.content || "";
+        const delta = parsed?.choices?.[0]?.delta;
+        const token = delta?.content || "";
         if (token) {
           full += token;
           onChunk(full);
+        } else if (delta?.reasoning_content) {
+          reasoningBackup += delta.reasoning_content;
         }
       } catch {
         // partial JSON
       }
     }
+  }
+
+  if (!full.trim() && reasoningBackup.trim()) {
+    full = reasoningBackup.trim();
+    onChunk(full);
   }
 
   return full;

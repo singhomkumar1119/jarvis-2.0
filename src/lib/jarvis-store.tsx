@@ -364,6 +364,10 @@ export function JarvisProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       if ((error as Error)?.name === "AbortError") return;
+      const errorMsg =
+        error instanceof Error && error.message
+          ? error.message
+          : "Jarvis lost the connection. Try again.";
       setMessages((m) =>
         m.map((msg) =>
           msg.id === id
@@ -371,7 +375,7 @@ export function JarvisProvider({ children }: { children: ReactNode }) {
                 ...msg,
                 streaming: false,
                 error: true,
-                text: msg.text || "Jarvis lost the connection. Try again.",
+                text: msg.text || errorMsg,
               }
             : msg,
         ),

@@ -53,9 +53,14 @@ export function useModelCatalog() {
         for (const m of json.models) {
           mergedMap.set(m.id, { ...(mergedMap.get(m.id) || {}), ...m });
         }
+        // Client-side credentials and computeConfiguredModels always take precedence!
+        const configuredMerged = computeConfiguredModels(Array.from(mergedMap.values()));
+        const defaultMod =
+          json.defaultModel ||
+          (hasNvidia ? "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning" : DEFAULT_MODEL_ID);
         const updated = {
-          models: Array.from(mergedMap.values()),
-          defaultModel: json.defaultModel || DEFAULT_MODEL_ID,
+          models: configuredMerged,
+          defaultModel: defaultMod,
         };
         cache = updated;
         setData(updated);

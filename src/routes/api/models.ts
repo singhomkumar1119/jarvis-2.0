@@ -65,12 +65,12 @@ export const Route = createFileRoute("/api/models")({
         let defaultModel = DEFAULT_MODEL_ID;
         if (customUrl && process.env["AI_MODEL"]) {
           defaultModel = process.env["AI_MODEL"];
+        } else if (nvidiaKey) {
+          defaultModel = NVIDIA_MODELS[0]!.id;
         } else if (geminiKey) {
           defaultModel = DEFAULT_MODEL_ID;
         } else if (openaiKey) {
           defaultModel = OPENAI_MODELS[0]!.id;
-        } else if (nvidiaKey) {
-          defaultModel = NVIDIA_MODELS[0]!.id;
         }
 
         // Prioritize configured models so the user sees working models immediately

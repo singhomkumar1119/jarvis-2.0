@@ -128,10 +128,19 @@ const modelsData = {
       tier: "High",
       provider: "nvidia",
       description: "NVIDIA NIM optimized reasoning model",
-      configured: false,
+      configured: true,
+    },
+    {
+      id: "nvidia/nemotron-3-ultra-550b-a55b",
+      name: "Nemotron 3 Ultra",
+      label: "Nemotron 3 Ultra 550B",
+      tier: "Pro",
+      provider: "nvidia",
+      description: "Enterprise ultra-scale model on accelerated cloud",
+      configured: true,
     },
   ],
-  defaultModel: "gemini-3.5-flash-lite",
+  defaultModel: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
 };
 
 const jsonContent = JSON.stringify(modelsData, null, 2);

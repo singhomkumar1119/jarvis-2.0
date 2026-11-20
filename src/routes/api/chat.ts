@@ -320,6 +320,16 @@ export const Route = createFileRoute("/api/chat")({
                 }
               }
 
+              // 2.5 If still failed and NVIDIA NIM is available, fail over to Nemotron
+              if (chunksCount === 0 && nvidiaKey && !isNvidia) {
+                console.log("[Jarvis Server] Primary model failed, falling back to NVIDIA NIM...");
+                const nvidiaProvider = createNvidiaProvider(nvidiaKey);
+                await streamCandidate(
+                  nvidiaProvider("nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"),
+                  "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+                );
+              }
+
               // 3. If still 0 chunks emitted, give friendly Jarvis explanation
               if (chunksCount === 0) {
                 const politeMsg =

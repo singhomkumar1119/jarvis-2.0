@@ -124,7 +124,7 @@ export const NVIDIA_MODELS: ModelOption[] = [
     tier: "High",
     provider: "nvidia",
     description: "NVIDIA NIM optimized reasoning model",
-    configured: false,
+    configured: true,
   },
   {
     id: "nvidia/nemotron-3-ultra-550b-a55b",
@@ -133,7 +133,7 @@ export const NVIDIA_MODELS: ModelOption[] = [
     tier: "Pro",
     provider: "nvidia",
     description: "Enterprise ultra-scale model on accelerated cloud",
-    configured: false,
+    configured: true,
   },
 ];
 

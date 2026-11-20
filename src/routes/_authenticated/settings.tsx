@@ -20,6 +20,7 @@ import { Slider } from "@/components/ui/slider";
 import { useJarvis, type PermissionKey, type Settings as S } from "@/lib/jarvis-store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { getProviderApiKey } from "@/lib/client-ai";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
@@ -150,13 +151,17 @@ function TokenPanel() {
 
 function AiKeysPanel() {
   const [geminiKey, setGeminiKey] = useState(() =>
-    typeof window !== "undefined" ? localStorage.getItem("jarvis_gemini_api_key") || "" : "",
+    typeof window !== "undefined"
+      ? localStorage.getItem("jarvis_gemini_api_key") || getProviderApiKey("gemini")
+      : "",
   );
   const [openaiKey, setOpenaiKey] = useState(() =>
     typeof window !== "undefined" ? localStorage.getItem("jarvis_openai_api_key") || "" : "",
   );
   const [nvidiaKey, setNvidiaKey] = useState(() =>
-    typeof window !== "undefined" ? localStorage.getItem("jarvis_nvidia_api_key") || "" : "",
+    typeof window !== "undefined"
+      ? localStorage.getItem("jarvis_nvidia_api_key") || getProviderApiKey("nvidia")
+      : "",
   );
   const [ollamaUrl, setOllamaUrl] = useState(() =>
     typeof window !== "undefined" ? localStorage.getItem("jarvis_ollama_base_url") || "" : "",

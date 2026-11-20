@@ -38,9 +38,7 @@ export function createNvidiaProvider(apiKey: string) {
   return createOpenAICompatible({
     name: "nvidia",
     baseURL: "https://integrate.api.nvidia.com/v1",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-    },
+    apiKey,
   });
 }
 
