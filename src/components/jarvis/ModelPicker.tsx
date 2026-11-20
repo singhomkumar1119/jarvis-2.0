@@ -12,7 +12,7 @@ function computeConfiguredModels(baseModels: ModelOption[]): ModelOption[] {
   const hasGemini = typeof window !== "undefined" ? !!getProviderApiKey("gemini") : true;
   const hasOpenAI = typeof window !== "undefined" ? !!getProviderApiKey("openai") : false;
   const hasOllama = typeof window !== "undefined" ? !!getOllamaBaseUrl() : false;
-  const hasNvidia = typeof window !== "undefined" ? !!getProviderApiKey("nvidia") : false;
+  const hasNvidia = typeof window !== "undefined" ? !!getProviderApiKey("nvidia") : true;
 
   return baseModels.map((m) => {
     let configured: boolean = m.configured ?? false;
@@ -55,9 +55,10 @@ export function useModelCatalog() {
         }
         // Client-side credentials and computeConfiguredModels always take precedence!
         const configuredMerged = computeConfiguredModels(Array.from(mergedMap.values()));
+        const hasNvidiaKey = typeof window !== "undefined" ? !!getProviderApiKey("nvidia") : true;
         const defaultMod =
           json.defaultModel ||
-          (hasNvidia ? "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning" : DEFAULT_MODEL_ID);
+          (hasNvidiaKey ? "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning" : DEFAULT_MODEL_ID);
         const updated = {
           models: configuredMerged,
           defaultModel: defaultMod,

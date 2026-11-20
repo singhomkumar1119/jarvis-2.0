@@ -321,9 +321,10 @@ export const Route = createFileRoute("/api/chat")({
               }
 
               // 2.5 If still failed and NVIDIA NIM is available, fail over to Nemotron
-              if (chunksCount === 0 && nvidiaKey && !isNvidia) {
+              const serverNvidiaKey = process.env["NVIDIA_API_KEY"];
+              if (chunksCount === 0 && serverNvidiaKey && !body.model?.startsWith("nvidia/")) {
                 console.log("[Jarvis Server] Primary model failed, falling back to NVIDIA NIM...");
-                const nvidiaProvider = createNvidiaProvider(nvidiaKey);
+                const nvidiaProvider = createNvidiaProvider(serverNvidiaKey);
                 await streamCandidate(
                   nvidiaProvider("nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"),
                   "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",

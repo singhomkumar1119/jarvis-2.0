@@ -140,7 +140,7 @@ const modelsData = {
       configured: true,
     },
   ],
-  defaultModel: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+  defaultModel: "gemini-3.5-flash-lite",
 };
 
 const jsonContent = JSON.stringify(modelsData, null, 2);
